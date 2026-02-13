@@ -15,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -24,7 +25,7 @@ const Auth = () => {
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { emailRedirectTo: window.location.origin, data: { name } },
+        options: { emailRedirectTo: window.location.origin, data: { name, phone } },
       });
       if (error) toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
       else toast({ title: "Check your email", description: "We sent you a verification link." });
@@ -100,6 +101,12 @@ const Auth = () => {
                 <motion.div key="name" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
                   <Label htmlFor="name" className="text-xs font-semibold text-foreground">Full Name</Label>
                   <Input id="name" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required className="h-12 rounded-xl" />
+                </motion.div>
+              )}
+              {isSignUp && (
+                <motion.div key="phone" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
+                  <Label htmlFor="phone" className="text-xs font-semibold text-foreground">Phone Number</Label>
+                  <Input id="phone" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} required className="h-12 rounded-xl" />
                 </motion.div>
               )}
             </AnimatePresence>
