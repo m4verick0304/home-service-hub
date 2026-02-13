@@ -11,7 +11,8 @@ import {
   Wrench, Sparkles, ChefHat, Paintbrush, Hammer,
   Users, CheckCircle2, Headphones, Search,
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets,
-  User, GlassWater, Truck, Camera, ChevronRight, X
+  User, GlassWater, Truck, Camera, ChevronRight, X,
+  ShoppingCart, History, Globe
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
@@ -62,6 +63,16 @@ const Index = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [locationName, setLocationName] = useState("Detect Location");
   const [detectingLocation, setDetectingLocation] = useState(false);
+  const [language, setLanguage] = useState("EN");
+  const [langOpen, setLangOpen] = useState(false);
+
+  const languages = [
+    { code: "EN", label: "English" },
+    { code: "HI", label: "हिन्दी" },
+    { code: "TA", label: "தமிழ்" },
+    { code: "TE", label: "తెలుగు" },
+    { code: "BN", label: "বাংলা" },
+  ];
 
   useEffect(() => {
     supabase.from("services").select("*").then(({ data }) => {
@@ -138,7 +149,55 @@ const Index = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Language Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+              >
+                <Globe className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-bold">{language}</span>
+                <ChevronRight className={`h-3 w-3 text-muted-foreground transition-transform ${langOpen ? "rotate-[270deg]" : "rotate-90"}`} />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-36 bg-card border rounded-xl sh-shadow-lg overflow-hidden z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { setLanguage(lang.code); setLangOpen(false); }}
+                      className={`w-full text-left px-3.5 py-2 text-sm hover:bg-muted transition-colors flex items-center justify-between ${language === lang.code ? "font-bold text-primary" : "text-foreground"}`}
+                    >
+                      <span>{lang.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{lang.code}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Cart */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-9 w-9"
+              onClick={() => session ? navigate("/history") : navigate("/auth")}
+              title="Cart"
+            >
+              <ShoppingCart className="h-4 w-4 text-foreground" />
+            </Button>
+
+            {/* History */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-9 w-9"
+              onClick={() => session ? navigate("/history") : navigate("/auth")}
+              title="Booking History"
+            >
+              <History className="h-4 w-4 text-foreground" />
+            </Button>
+
             <ThemeToggle variant="white" />
             {session ? (
               <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/dashboard")}>
