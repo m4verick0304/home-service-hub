@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Service = Tables<"services">;
@@ -38,8 +38,21 @@ function parsePriceRange(priceRange: string | null): number {
   return 0;
 }
 
+function loadCart(): CartItem[] {
+  try {
+    const stored = localStorage.getItem("sh-cart");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(loadCart);
+
+  useEffect(() => {
+    localStorage.setItem("sh-cart", JSON.stringify(items));
+  }, [items]);
 
   const addToCart = (service: Service) => {
     setItems((prev) => {
