@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tables } from "@/integrations/supabase/types";
 import { AppHeader } from "@/components/shared/AppHeader";
-import { motion } from "framer-motion";
+import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer,
   MapPin, History, Search, ChevronRight, Clock,
-  Shield, Star, ArrowRight
+  Shield, Star, ArrowRight, Snowflake, Bug, Scissors,
+  Settings, SprayCan, Droplets, User, GlassWater, Truck, Camera
 } from "lucide-react";
 
 type Service = Tables<"services">;
@@ -22,6 +24,16 @@ const iconMap: Record<string, React.ReactNode> = {
   ChefHat: <ChefHat className="h-6 w-6" />,
   Paintbrush: <Paintbrush className="h-6 w-6" />,
   Hammer: <Hammer className="h-6 w-6" />,
+  Snowflake: <Snowflake className="h-6 w-6" />,
+  Bug: <Bug className="h-6 w-6" />,
+  Scissors: <Scissors className="h-6 w-6" />,
+  Settings: <Settings className="h-6 w-6" />,
+  SprayCan: <SprayCan className="h-6 w-6" />,
+  Droplets: <Droplets className="h-6 w-6" />,
+  User: <User className="h-6 w-6" />,
+  GlassWater: <GlassWater className="h-6 w-6" />,
+  Truck: <Truck className="h-6 w-6" />,
+  Camera: <Camera className="h-6 w-6" />,
 };
 
 const colorMap: Record<string, string> = {
@@ -31,13 +43,46 @@ const colorMap: Record<string, string> = {
   ChefHat: "bg-[hsl(var(--sh-red-light))] text-[hsl(var(--sh-red))]",
   Paintbrush: "bg-[hsl(var(--sh-purple-light))] text-[hsl(var(--sh-purple))]",
   Hammer: "bg-[hsl(var(--sh-orange-light))] text-[hsl(var(--sh-orange))]",
+  Snowflake: "bg-[hsl(var(--sh-blue-light))] text-[hsl(var(--sh-blue))]",
+  Bug: "bg-[hsl(var(--sh-red-light))] text-[hsl(var(--sh-red))]",
+  Scissors: "bg-[hsl(var(--sh-purple-light))] text-[hsl(var(--sh-purple))]",
+  Settings: "bg-[hsl(var(--sh-orange-light))] text-[hsl(var(--sh-orange))]",
+  SprayCan: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
+  Droplets: "bg-[hsl(var(--sh-blue-light))] text-[hsl(var(--sh-blue))]",
+  User: "bg-[hsl(var(--sh-purple-light))] text-[hsl(var(--sh-purple))]",
+  GlassWater: "bg-[hsl(var(--sh-blue-light))] text-[hsl(var(--sh-blue))]",
+  Truck: "bg-[hsl(var(--sh-orange-light))] text-[hsl(var(--sh-orange))]",
+  Camera: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
 };
 
 const Dashboard = () => {
   const { profile } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiSuggestion, setAiSuggestion] = useState<{ service_name: string; explanation: string; tips: string } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleSmartSearch = async () => {
+    if (!searchQuery.trim() || searchQuery.length < 5) return;
+    setAiLoading(true);
+    setAiSuggestion(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("smart-match", {
+        body: { description: searchQuery },
+      });
+      if (error) throw error;
+      setAiSuggestion(data);
+      // Find matching service and navigate
+      const match = services.find(s => s.name.toLowerCase() === data.service_name?.toLowerCase());
+      if (match) {
+        toast({ title: `AI recommends: ${match.name}`, description: data.explanation });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setAiLoading(false);
+  };
 
   useEffect(() => {
     supabase.from("services").select("*").then(({ data }) => {
@@ -88,19 +133,47 @@ const Dashboard = () => {
             <div className="mt-6 relative max-w-lg">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Search services (e.g., Plumber, Electrician...)"
+                placeholder="Describe your problem (e.g., 'my tap is leaking')..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="h-14 pl-12 pr-4 rounded-2xl border-2 border-border bg-card text-base sh-shadow focus-visible:ring-primary"
+                onKeyDown={e => e.key === "Enter" && handleSmartSearch()}
+                className="h-14 pl-12 pr-28 rounded-2xl border-2 border-border bg-card text-base sh-shadow focus-visible:ring-primary"
               />
+              <Button
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-10 rounded-xl sh-gradient-blue border-0 text-white text-xs font-bold px-4"
+                onClick={handleSmartSearch}
+                disabled={aiLoading}
+              >
+                {aiLoading ? <Sparkles className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-3.5 w-3.5 mr-1" /> AI Match</>}
+              </Button>
             </div>
 
-            {/* Location */}
-            <div className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-xl px-4 py-2.5 sh-shadow cursor-pointer hover:border-primary/30 transition-colors">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span className="truncate max-w-[200px]">{profile?.address || "Set your location"}</span>
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </div>
+            {/* AI Suggestion */}
+            <AnimatePresence>
+              {aiSuggestion && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-3 max-w-lg p-4 rounded-2xl bg-primary/5 border border-primary/20"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-bold text-primary">AI Recommendation: {aiSuggestion.service_name}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{aiSuggestion.explanation}</p>
+                  {aiSuggestion.tips && <p className="text-xs text-muted-foreground mt-1 italic">💡 {aiSuggestion.tips}</p>}
+                  {(() => {
+                    const match = services.find(s => s.name.toLowerCase() === aiSuggestion.service_name?.toLowerCase());
+                    return match ? (
+                      <Button size="sm" className="mt-2 h-8 rounded-xl sh-gradient-blue border-0 text-white text-xs font-bold" onClick={() => navigate(`/book/${match.id}`)}>
+                        Book {match.name} <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    ) : null;
+                  })()}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </section>

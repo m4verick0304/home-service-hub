@@ -12,7 +12,9 @@ import { MapPlaceholder } from "@/components/shared/MapPlaceholder";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar, Clock, MapPin, Loader2, Search,
-  Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer, Check, Shield
+  Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer, Check, Shield,
+  Snowflake, Bug, Scissors, Settings, SprayCan, Droplets, User, GlassWater, Truck, Camera,
+  LocateFixed
 } from "lucide-react";
 
 type Service = Tables<"services">;
@@ -24,6 +26,16 @@ const iconMap: Record<string, React.ReactNode> = {
   ChefHat: <ChefHat className="h-6 w-6" />,
   Paintbrush: <Paintbrush className="h-6 w-6" />,
   Hammer: <Hammer className="h-6 w-6" />,
+  Snowflake: <Snowflake className="h-6 w-6" />,
+  Bug: <Bug className="h-6 w-6" />,
+  Scissors: <Scissors className="h-6 w-6" />,
+  Settings: <Settings className="h-6 w-6" />,
+  SprayCan: <SprayCan className="h-6 w-6" />,
+  Droplets: <Droplets className="h-6 w-6" />,
+  User: <User className="h-6 w-6" />,
+  GlassWater: <GlassWater className="h-6 w-6" />,
+  Truck: <Truck className="h-6 w-6" />,
+  Camera: <Camera className="h-6 w-6" />,
 };
 
 const providerNames = ["Rajesh Kumar", "Priya Sharma", "Amit Patel", "Sunita Devi", "Vikram Singh"];
@@ -37,6 +49,38 @@ const BookService = () => {
   const [scheduling, setScheduling] = useState<"now" | "later">("now");
   const [scheduledDate, setScheduledDate] = useState("");
   const [searching, setSearching] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "GPS not supported", description: "Your browser doesn't support geolocation.", variant: "destructive" });
+      return;
+    }
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          if (data.display_name) {
+            setAddress(data.display_name);
+            toast({ title: "Location detected", description: "Your address has been auto-filled." });
+          }
+        } catch {
+          setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        }
+        setDetectingLocation(false);
+      },
+      (error) => {
+        setDetectingLocation(false);
+        toast({ title: "Location error", description: error.message, variant: "destructive" });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   useEffect(() => {
     if (serviceId) {
@@ -128,14 +172,32 @@ const BookService = () => {
         </div>
 
         {/* Map */}
-        <MapPlaceholder className="h-[200px]" />
+        <div className="relative">
+          <MapPlaceholder className="h-[200px]" />
+          {userCoords && (
+            <div className="absolute bottom-3 left-3 bg-card/90 backdrop-blur-sm rounded-xl px-3 py-1.5 text-xs font-medium text-foreground border sh-shadow">
+              📍 {userCoords.lat.toFixed(4)}, {userCoords.lng.toFixed(4)}
+            </div>
+          )}
+        </div>
 
         {/* Address */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-xs font-bold text-foreground uppercase tracking-wide">
             <MapPin className="h-3.5 w-3.5 text-primary" /> Service Address
           </Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Enter your full address" className="h-12 rounded-xl" />
+          <div className="flex gap-2">
+            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Enter your full address" className="h-12 rounded-xl flex-1" />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 px-4 rounded-xl shrink-0"
+              onClick={detectLocation}
+              disabled={detectingLocation}
+            >
+              {detectingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
 
         {/* Scheduling */}
