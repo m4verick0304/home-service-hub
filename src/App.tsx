@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import { BookingNotificationProvider } from "@/components/BookingNotificationProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -12,6 +13,8 @@ import BookService from "./pages/BookService";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingHistory from "./pages/BookingHistory";
 import Profile from "./pages/Profile";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import HelperLogin from "./pages/helper/HelperLogin";
 import HelperDashboard from "./pages/helper/HelperDashboard";
 import HelperJobRequest from "./pages/helper/HelperJobRequest";
@@ -54,6 +57,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <CartProvider>
           <BookingNotificationProvider />
           <Routes>
             {/* Public */}
@@ -66,6 +70,8 @@ const App = () => (
             <Route path="/confirmation/:bookingId" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><BookingHistory /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
 
             {/* Helper (Demo — no auth required for hackathon demo) */}
             <Route path="/helper/login" element={<HelperLogin />} />
@@ -75,6 +81,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </CartProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
