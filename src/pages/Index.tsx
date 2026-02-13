@@ -64,12 +64,53 @@ const Index = () => {
   const { session } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [locationName, setLocationName] = useState("Detect Location");
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   useEffect(() => {
     supabase.from("services").select("*").then(({ data }) => {
       if (data) setServices(data);
     });
   }, []);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) return;
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`
+          );
+          const data = await res.json();
+          const city = data.address?.city || data.address?.town || data.address?.suburb || data.address?.state_district || "Your Area";
+          setLocationName(city);
+        } catch {
+          setLocationName("Location detected");
+        }
+        setDetectingLocation(false);
+      },
+      () => {
+        setLocationName("Location unavailable");
+        setDetectingLocation(false);
+      },
+      { timeout: 8000 }
+    );
+  };
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    const match = services.find(
+      (s) =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    if (match) {
+      handleServiceClick(match.id);
+    } else {
+      handleServiceClick(); // go to dashboard/auth
+    }
+  };
 
   const handleServiceClick = (serviceId?: string) => {
     if (session) {
@@ -94,9 +135,14 @@ const Index = () => {
               <span className="text-base font-extrabold tracking-tight text-foreground hidden sm:block">SmartHelper</span>
             </div>
             {/* Location pill */}
-            <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors text-sm">
+            <button
+              onClick={detectLocation}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors text-sm"
+            >
               <MapPin className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium text-foreground truncate max-w-[160px]">Your Location</span>
+              <span className="font-medium text-foreground truncate max-w-[160px]">
+                {detectingLocation ? "Detecting…" : locationName}
+              </span>
               <ChevronRight className="h-3 w-3 text-muted-foreground rotate-90" />
             </button>
           </div>
@@ -109,8 +155,16 @@ const Index = () => {
                 placeholder="Search for 'Kitchen cleaning'"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="h-10 pl-10 rounded-lg border bg-muted/50 text-sm"
+                onKeyDown={e => e.key === "Enter" && handleSearch()}
+                className="h-10 pl-10 pr-20 rounded-lg border bg-muted/50 text-sm"
               />
+              <Button
+                size="sm"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 rounded-md text-xs font-semibold sh-gradient-blue border-0 text-white"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
             </div>
           </div>
 
