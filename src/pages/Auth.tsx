@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Zap, Shield, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Lanyard from "@/components/Lanyard";
+import DarkVeil from "@/components/DarkVeil";
+import CountryCodeSelect from "@/components/CountryCodeSelect";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -17,10 +18,13 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const fullPhone = `${countryCode}${phone.replace(/^0+/, "")}`;
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +32,7 @@ const Auth = () => {
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { emailRedirectTo: window.location.origin, data: { name, phone } },
+        options: { emailRedirectTo: window.location.origin, data: { name, phone: fullPhone } },
       });
       if (error) toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
       else toast({ title: "Check your email", description: "We sent you a verification link." });
@@ -49,7 +53,7 @@ const Auth = () => {
         const res = await fetch(`${supabaseUrl}/functions/v1/twilio-otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "send", phone }),
+          body: JSON.stringify({ action: "send", phone: fullPhone }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send OTP");
@@ -59,11 +63,10 @@ const Auth = () => {
         const res = await fetch(`${supabaseUrl}/functions/v1/twilio-otp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "verify", phone, code: otp }),
+          body: JSON.stringify({ action: "verify", phone: fullPhone, code: otp }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Verification failed");
-        // Set the session from the response
         if (data.session?.access_token && data.session?.refresh_token) {
           await supabase.auth.setSession({
             access_token: data.session.access_token,
@@ -81,21 +84,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col lg:flex-row relative">
+      {/* Full-screen DarkVeil background */}
+      <div className="absolute inset-0 z-0">
+        <DarkVeil speed={0.3} warpAmount={0.4} resolutionScale={0.75} />
+      </div>
+
       {/* Left - Branding */}
-      <div className="relative lg:w-1/2 h-[260px] lg:h-auto overflow-hidden sh-gradient-blue">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute bottom-10 right-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-        </div>
-
-        {/* 3D Lanyard */}
-        <Suspense fallback={null}>
-          <Lanyard position={[0, 0, 24]} gravity={[0, -40, 0]} />
-        </Suspense>
-
-        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12 pointer-events-none" style={{ zIndex: 1 }}>
-          <div className="flex items-center gap-2 pointer-events-auto">
+      <div className="relative lg:w-1/2 h-[260px] lg:h-auto overflow-hidden z-10">
+        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12">
+          <div className="flex items-center gap-2">
             <button onClick={() => navigate("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 text-white text-[10px] font-bold tracking-tight">HS</div>
               <span className="text-white text-base font-semibold tracking-tight">homeserv</span>
@@ -127,8 +125,8 @@ const Auth = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:py-0 bg-background">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:py-0 z-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-sm bg-background/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-border/50">
           <div className="mb-8">
             <h2 className="text-2xl font-black text-foreground tracking-tight">
               {isSignUp ? "Create account" : "Welcome back"}
@@ -168,7 +166,10 @@ const Auth = () => {
                 {isSignUp && (
                   <motion.div key="phone-field" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
                     <Label htmlFor="phone-email" className="text-xs font-semibold text-foreground">Phone Number</Label>
-                    <Input id="phone-email" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} className="h-12 rounded-xl" />
+                    <div className="flex">
+                      <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
+                      <Input id="phone-email" type="tel" placeholder="9876543210" value={phone} onChange={e => setPhone(e.target.value)} className="h-12 rounded-l-none rounded-r-xl flex-1" />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -189,7 +190,10 @@ const Auth = () => {
             <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="phone-auth" className="text-xs font-semibold text-foreground">Phone Number</Label>
-                <Input id="phone-auth" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} required className="h-12 rounded-xl" />
+                <div className="flex">
+                  <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
+                  <Input id="phone-auth" type="tel" placeholder="9876543210" value={phone} onChange={e => setPhone(e.target.value)} required className="h-12 rounded-l-none rounded-r-xl flex-1" />
+                </div>
               </div>
               <AnimatePresence mode="popLayout">
                 {otpSent && (
@@ -208,7 +212,7 @@ const Auth = () => {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background/80 px-2 text-muted-foreground">Or continue with</span></div>
           </div>
 
           <div className="flex flex-col gap-3">
