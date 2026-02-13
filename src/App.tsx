@@ -17,6 +17,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import HelperLogin from "./pages/helper/HelperLogin";
 import HelperDashboard from "./pages/helper/HelperDashboard";
+import HelperJobs from "./pages/helper/HelperJobs";
+import HelperEarnings from "./pages/helper/HelperEarnings";
+import HelperProfile from "./pages/helper/HelperProfile";
 import HelperJobRequest from "./pages/helper/HelperJobRequest";
 import HelperActiveJob from "./pages/helper/HelperActiveJob";
 import NotFound from "./pages/NotFound";
@@ -83,6 +86,9 @@ const App = () => (
             {/* Helper (Demo — no auth required for hackathon demo) */}
             <Route path="/helper/login" element={<HelperLogin />} />
             <Route path="/helper/dashboard" element={<HelperDashboard />} />
+            <Route path="/helper/jobs" element={<HelperJobs />} />
+            <Route path="/helper/earnings" element={<HelperEarnings />} />
+            <Route path="/helper/profile" element={<HelperProfile />} />
             <Route path="/helper/job-request" element={<HelperJobRequest />} />
             <Route path="/helper/active-job" element={<HelperActiveJob />} />
 
