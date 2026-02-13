@@ -51,16 +51,16 @@ const Auth = () => {
         </Suspense>
 
         <div className="relative flex flex-col justify-between h-full p-8 lg:p-12 pointer-events-none" style={{ zIndex: 1 }}>
-          <div className="flex items-center gap-2.5 pointer-events-auto">
-            <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white text-xs font-black">SH</div>
-              <span className="text-white text-lg font-bold">SmartHelper</span>
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <button onClick={() => navigate("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 text-white text-[10px] font-bold tracking-tight">HS</div>
+              <span className="text-white text-base font-semibold tracking-tight">homeserv</span>
             </button>
           </div>
 
           <div>
             <h1 className="text-2xl lg:text-4xl font-black text-white leading-tight tracking-tight">
-              Smart Helper<br />Auto-Assignment
+              homeserv<br />Auto-Assignment
             </h1>
             <p className="mt-3 text-white/70 text-sm lg:text-base max-w-md">
               AI-powered system that matches you with the nearest, best-rated service professional.
