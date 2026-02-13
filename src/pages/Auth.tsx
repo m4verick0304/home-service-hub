@@ -30,7 +30,7 @@ const Auth = () => {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
-      else navigate("/");
+      else navigate("/dashboard");
     }
     setLoading(false);
   };
