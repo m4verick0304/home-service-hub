@@ -4,17 +4,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 import {
   Zap, Shield, Clock, Star, MapPin, ArrowRight,
   Wrench, Sparkles, ChefHat, Paintbrush, Hammer,
-  Users, CheckCircle2, Headphones, ChevronLeft, ChevronRight,
+  Users, CheckCircle2, Headphones, Search,
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets,
-  User, GlassWater, Truck, Camera, Search
+  User, GlassWater, Truck, Camera, ChevronRight
 } from "lucide-react";
-import heroAcRepair from "@/assets/hero-ac-repair.jpg";
-import heroCleaning from "@/assets/hero-cleaning.jpg";
-import heroBanner from "@/assets/hero-banner.jpg";
+import ucSalon from "@/assets/uc-salon.jpg";
+import ucCleaning from "@/assets/uc-cleaning.jpg";
+import ucAcRepair from "@/assets/uc-ac-repair.jpg";
+import ucPlumber from "@/assets/uc-plumber.jpg";
 
 type Service = Tables<"services">;
 
@@ -43,32 +45,10 @@ const colorMap: Record<string, string> = {
   Camera: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
 };
 
-const bannerSlides = [
-  {
-    image: heroAcRepair,
-    title: "AC Repair & Service",
-    subtitle: "Starting at ₹399 • Expert technicians at your doorstep",
-    cta: "Book Now",
-  },
-  {
-    image: heroCleaning,
-    title: "Professional Home Cleaning",
-    subtitle: "Deep cleaning starting at ₹499 • Trained & verified staff",
-    cta: "Book Now",
-  },
-  {
-    image: heroBanner,
-    title: "Smart Helper Auto-Assignment",
-    subtitle: "AI-powered matching with nearest, best-rated professionals",
-    cta: "Get Started",
-  },
-];
-
-const stats = [
-  { value: "10K+", label: "Bookings Completed" },
-  { value: "2K+", label: "Verified Helpers" },
-  { value: "4.8", label: "Average Rating" },
-  { value: "15min", label: "Avg Response Time" },
+const promoCards = [
+  { image: ucSalon, title: "Shine your look", subtitle: "Salon for Women", color: "from-pink-600/80" },
+  { image: ucCleaning, title: "Deep clean your home", subtitle: "Professional Cleaning", color: "from-emerald-600/80" },
+  { image: ucAcRepair, title: "Beat the heat", subtitle: "AC Service & Repair", color: "from-sky-600/80" },
 ];
 
 const reviews = [
@@ -81,20 +61,13 @@ const reviews = [
 const Index = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [services, setServices] = useState<Service[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     supabase.from("services").select("*").then(({ data }) => {
       if (data) setServices(data);
     });
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
   }, []);
 
   const handleServiceClick = (serviceId?: string) => {
@@ -105,20 +78,44 @@ const Index = () => {
     }
   };
 
+  // Top 6 for the hero grid, rest for horizontal row
+  const topServices = services.slice(0, 3);
+  const bottomServices = services.slice(3, 7);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 sh-glass border-b">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl sh-gradient-blue text-white text-xs font-black sh-shadow">
-              SH
+      {/* Navbar — UC style: clean white, location, search */}
+      <header className="sticky top-0 z-50 bg-card border-b">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-16">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg sh-gradient-blue text-white text-[10px] font-black">SH</div>
+              <span className="text-base font-extrabold tracking-tight text-foreground hidden sm:block">SmartHelper</span>
             </div>
-            <span className="text-lg font-extrabold tracking-tight text-foreground">SmartHelper</span>
+            {/* Location pill */}
+            <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors text-sm">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span className="font-medium text-foreground truncate max-w-[160px]">Your Location</span>
+              <ChevronRight className="h-3 w-3 text-muted-foreground rotate-90" />
+            </button>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Search bar in header */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search for 'Kitchen cleaning'"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="h-10 pl-10 rounded-lg border bg-muted/50 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
             {session ? (
-              <Button className="rounded-xl text-sm font-bold sh-gradient-blue border-0 text-white sh-shadow" onClick={() => navigate("/dashboard")}>
+              <Button className="rounded-lg text-sm font-semibold sh-gradient-blue border-0 text-white" onClick={() => navigate("/dashboard")}>
                 Dashboard
               </Button>
             ) : (
@@ -126,7 +123,7 @@ const Index = () => {
                 <Button variant="ghost" className="text-sm font-medium" onClick={() => navigate("/auth")}>
                   Sign In
                 </Button>
-                <Button className="rounded-xl text-sm font-bold sh-gradient-blue border-0 text-white sh-shadow" onClick={() => navigate("/auth")}>
+                <Button className="rounded-lg text-sm font-semibold sh-gradient-blue border-0 text-white" onClick={() => navigate("/auth")}>
                   Get Started
                 </Button>
               </>
@@ -135,139 +132,190 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero Banner Carousel */}
-      <section className="relative h-[360px] md:h-[480px] overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-0"
-          >
-            <img
-              src={bannerSlides[currentSlide].image}
-              alt={bannerSlides[currentSlide].title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-            <div className="absolute inset-0 flex items-center">
-              <div className="mx-auto max-w-6xl px-6 w-full">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="max-w-lg"
-                >
-                  <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
-                    {bannerSlides[currentSlide].title}
-                  </h2>
-                  <p className="mt-3 text-white/80 text-sm md:text-base">
-                    {bannerSlides[currentSlide].subtitle}
-                  </p>
-                  <Button
-                    size="lg"
-                    className="mt-6 h-13 px-8 rounded-2xl text-base font-bold sh-gradient-blue border-0 text-white sh-shadow-md"
-                    onClick={() => handleServiceClick()}
-                  >
-                    {bannerSlides[currentSlide].cta} <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Slide indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-          {bannerSlides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentSlide(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === currentSlide ? "w-8 bg-white" : "w-2 bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Nav arrows */}
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors hidden md:flex"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors hidden md:flex"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-      </section>
-
-      {/* Quick Info Bar */}
-      <div className="bg-card border-b">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-center gap-8 md:gap-16 flex-wrap">
-          {[
-            { icon: <Clock className="h-4 w-4" />, text: "15 min avg response" },
-            { icon: <Shield className="h-4 w-4" />, text: "Verified professionals" },
-            { icon: <Star className="h-4 w-4" />, text: "4.8+ rated" },
-            { icon: <CheckCircle2 className="h-4 w-4" />, text: "Satisfaction guaranteed" },
-          ].map((item) => (
-            <div key={item.text} className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <span className="text-primary">{item.icon}</span>
-              {item.text}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Services Grid - UC Style */}
-      <section className="py-12 md:py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex items-center justify-between mb-8">
+      {/* Hero — UC split layout */}
+      <section className="py-10 md:py-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            {/* Left: headline + service grid */}
             <div>
-              <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Home services at your doorstep</h2>
-              <p className="text-muted-foreground mt-1 text-sm">Choose a service and we'll match you with the best professional nearby</p>
-            </div>
-            {session && (
-              <Button variant="outline" className="rounded-xl text-sm font-medium hidden sm:flex" onClick={() => navigate("/dashboard")}>
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            )}
-          </div>
+              <motion.h1
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl md:text-[42px] font-black text-foreground leading-tight tracking-tight"
+              >
+                Home services at your doorstep
+              </motion.h1>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
-            {services.map((svc, i) => {
-              const IconComp = iconMap[svc.icon || ""] || Sparkles;
-              return (
-                <motion.button
-                  key={svc.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.04 }}
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow group cursor-pointer"
-                  onClick={() => handleServiceClick(svc.id)}
+              {/* Service category card */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mt-8 p-6 rounded-2xl bg-card border sh-shadow"
+              >
+                <p className="text-sm font-semibold text-muted-foreground mb-5">What are you looking for?</p>
+
+                {/* Top row — icon cards */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  {topServices.map((svc) => {
+                    const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                    return (
+                      <button
+                        key={svc.id}
+                        onClick={() => handleServiceClick(svc.id)}
+                        className="flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-muted transition-colors group cursor-pointer"
+                      >
+                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
+                          <IconComp className="h-7 w-7" />
+                        </div>
+                        <span className="text-xs font-semibold text-foreground text-center leading-tight">{svc.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Bottom rows — horizontal list cards */}
+                <div className="space-y-2">
+                  {bottomServices.map((svc) => {
+                    const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                    return (
+                      <button
+                        key={svc.id}
+                        onClick={() => handleServiceClick(svc.id)}
+                        className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors group cursor-pointer"
+                      >
+                        <div className="flex-1 text-left">
+                          <span className="text-sm font-semibold text-foreground">{svc.name}</span>
+                          {svc.price_range && (
+                            <span className="text-xs text-muted-foreground ml-2">{svc.price_range}</span>
+                          )}
+                        </div>
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
+                          <IconComp className="h-5 w-5" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* View all */}
+                <button
+                  onClick={() => handleServiceClick()}
+                  className="w-full mt-4 text-sm font-semibold text-primary flex items-center justify-center gap-1 hover:underline"
                 >
-                  <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                    <IconComp className="h-6 w-6" />
+                  View all services <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </motion.div>
+
+              {/* Stats bar — like UC */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center gap-8 mt-8"
+              >
+                <div className="flex items-center gap-3">
+                  <Star className="h-6 w-6 text-foreground" />
+                  <div>
+                    <p className="text-xl font-black text-foreground">4.8</p>
+                    <p className="text-xs text-muted-foreground">Service Rating*</p>
                   </div>
-                  <span className="text-xs font-semibold text-foreground text-center leading-tight">{svc.name}</span>
-                </motion.button>
-              );
-            })}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="h-6 w-6 text-foreground" />
+                  <div>
+                    <p className="text-xl font-black text-foreground">12M+</p>
+                    <p className="text-xs text-muted-foreground">Customers Globally*</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right: Image collage — UC style 2x2 grid */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="hidden lg:grid grid-cols-2 gap-3 h-[520px]"
+            >
+              <div className="rounded-2xl overflow-hidden">
+                <img src={ucSalon} alt="Salon services" className="w-full h-full object-cover" />
+              </div>
+              <div className="rounded-2xl overflow-hidden">
+                <img src={ucPlumber} alt="Plumbing services" className="w-full h-full object-cover" />
+              </div>
+              <div className="rounded-2xl overflow-hidden">
+                <img src={ucCleaning} alt="Cleaning services" className="w-full h-full object-cover" />
+              </div>
+              <div className="rounded-2xl overflow-hidden">
+                <img src={ucAcRepair} alt="AC repair services" className="w-full h-full object-cover" />
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
+
+      {/* Promo cards — horizontal scroll like UC */}
+      <section className="pb-12">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid sm:grid-cols-3 gap-4">
+            {promoCards.map((card, i) => (
+              <motion.button
+                key={card.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                onClick={() => handleServiceClick()}
+                className="relative h-48 rounded-2xl overflow-hidden group cursor-pointer"
+              >
+                <img src={card.image} alt={card.subtitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className={`absolute inset-0 bg-gradient-to-t ${card.color} to-transparent`} />
+                <div className="absolute bottom-0 left-0 p-5">
+                  <p className="text-lg font-black text-white">{card.title}</p>
+                  <p className="text-xs text-white/80 mt-0.5">{card.subtitle}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* All services grid */}
+      {services.length > 0 && (
+        <section className="py-12 bg-muted/50">
+          <div className="mx-auto max-w-7xl px-6">
+            <h2 className="text-xl font-black text-foreground mb-6">All Services</h2>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+              {services.map((svc, i) => {
+                const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                return (
+                  <motion.button
+                    key={svc.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.03 }}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow group cursor-pointer"
+                    onClick={() => handleServiceClick(svc.id)}
+                  >
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
+                      <IconComp className="h-6 w-6" />
+                    </div>
+                    <span className="text-xs font-semibold text-foreground text-center leading-tight">{svc.name}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* How it works */}
-      <section className="py-12 md:py-20 bg-muted/50">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="py-12 md:py-20">
+        <div className="mx-auto max-w-7xl px-6">
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">How SmartHelper works</h2>
             <p className="text-muted-foreground mt-2 text-sm">Get professional help in 3 simple steps</p>
@@ -278,7 +326,7 @@ const Index = () => {
               { step: "02", icon: Zap, title: "Smart Auto-Assign", desc: "Our AI system instantly matches you with the nearest, best-rated, available professional." },
               { step: "03", icon: CheckCircle2, title: "Track & Complete", desc: "Track your helper live on the map. Rate them after service completion." },
             ].map((item, i) => (
-              <motion.div key={item.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="relative p-7 rounded-3xl bg-card border sh-shadow group hover:sh-shadow-md transition-shadow">
+              <motion.div key={item.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="relative p-7 rounded-3xl bg-card border sh-shadow">
                 <span className="text-5xl font-black text-muted/60 absolute top-4 right-5">{item.step}</span>
                 <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
                   <item.icon className="h-5 w-5 text-primary" />
@@ -292,22 +340,15 @@ const Index = () => {
       </section>
 
       {/* Customer Reviews */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="py-12 md:py-20 bg-muted/50">
+        <div className="mx-auto max-w-7xl px-6">
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">What customers say</h2>
             <p className="text-muted-foreground mt-2 text-sm">Real reviews from verified customers</p>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {reviews.map((review, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="p-5 rounded-2xl bg-card border sh-shadow"
-              >
+              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="p-5 rounded-2xl bg-card border sh-shadow">
                 <div className="flex items-center gap-1 mb-3">
                   {Array.from({ length: review.rating }).map((_, j) => (
                     <Star key={j} className="h-3.5 w-3.5 fill-[hsl(var(--sh-orange))] text-[hsl(var(--sh-orange))]" />
@@ -324,23 +365,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-12 md:py-16 bg-muted/50">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center p-6 rounded-2xl bg-card border sh-shadow">
-                <p className="text-3xl md:text-4xl font-black text-primary">{s.value}</p>
-                <p className="text-xs text-muted-foreground mt-1 font-medium">{s.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Trust */}
       <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { icon: Shield, title: "Verified Professionals", desc: "Every helper is background-checked and skill-verified before onboarding." },
@@ -363,7 +390,7 @@ const Index = () => {
 
       {/* CTA */}
       <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-7xl px-6">
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="sh-gradient-blue rounded-3xl p-10 md:p-16 text-center text-white sh-shadow-lg">
             <h2 className="text-3xl md:text-4xl font-black tracking-tight">Ready to get started?</h2>
             <p className="mt-3 text-white/70 text-base max-w-md mx-auto">Join thousands of happy customers who get reliable help at their doorstep.</p>
@@ -381,7 +408,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t py-10">
-        <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg sh-gradient-blue text-white text-[10px] font-black">SH</div>
             <span className="text-sm font-bold text-foreground">SmartHelper</span>
