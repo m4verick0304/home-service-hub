@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Calendar, Clock, MapPin, Loader2, Search,
-  Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer
+  Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer, Check
 } from "lucide-react";
 
 type Service = Tables<"services">;
@@ -84,125 +84,126 @@ const BookService = () => {
 
   if (!service) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-foreground" />
       </div>
     );
   }
 
   if (searching) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 bg-background">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 bg-background">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="relative"
         >
           <motion.div
-            animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="h-28 w-28 rounded-full bg-primary/20 absolute inset-0"
+            className="h-24 w-24 rounded-full bg-muted absolute inset-0"
           />
-          <motion.div
-            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.1, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-            className="h-28 w-28 rounded-full bg-primary/15 absolute inset-0"
-          />
-          <div className="h-28 w-28 rounded-full gradient-primary flex items-center justify-center relative shadow-glow">
-            <Search className="h-12 w-12 text-primary-foreground" />
+          <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center relative">
+            <Search className="h-10 w-10 text-primary-foreground" />
           </div>
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-center"
-        >
-          <h2 className="text-2xl font-extrabold text-foreground">Finding providers...</h2>
-          <p className="text-muted-foreground mt-2 font-medium">Searching for the best {service.name.toLowerCase()} near you</p>
-          <div className="flex justify-center gap-1.5 mt-4">
+        <div className="text-center">
+          <h2 className="text-xl font-black text-foreground">Finding professionals...</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Searching for the best {service.name.toLowerCase()} near you
+          </p>
+          <div className="flex justify-center gap-1 mt-4">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                animate={{ scale: [1, 1.4, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                className="h-2.5 w-2.5 rounded-full bg-primary"
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                className="h-2 w-2 rounded-full bg-foreground"
               />
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b glass">
-        <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
-          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => navigate(-1)}>
+      {/* UC-style header */}
+      <header className="uc-header sticky top-0 z-50">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-6 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10 rounded-lg"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-extrabold">Book {service.name}</h1>
+          <h1 className="text-base font-bold text-white">Book {service.name}</h1>
         </div>
       </header>
 
       <motion.main
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mx-auto max-w-lg px-4 py-6 space-y-6"
+        className="mx-auto max-w-2xl px-6 py-8 space-y-6"
       >
-        {/* Service Info */}
-        <Card className="border-0 shadow-card overflow-hidden">
-          <div className="h-1 gradient-primary" />
+        {/* Service Info Card */}
+        <Card className="border shadow-uc rounded-xl overflow-hidden">
           <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-foreground flex-shrink-0">
               {iconMap[service.icon || ""] || <Sparkles className="h-6 w-6" />}
             </div>
-            <div className="flex-1">
-              <h2 className="font-extrabold text-lg text-foreground">{service.name}</h2>
-              <p className="text-sm text-muted-foreground">{service.description}</p>
-              <p className="text-base font-bold text-primary mt-1">{service.price_range}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-base text-foreground">{service.name}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5 truncate">{service.description}</p>
+              <p className="text-sm font-bold text-foreground mt-1">{service.price_range}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Address */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2 font-semibold">
-            <MapPin className="h-4 w-4 text-primary" /> Service Address
+          <Label className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wide">
+            <MapPin className="h-3.5 w-3.5" /> Service Address
           </Label>
           <Input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Enter your full address"
-            className="h-13 rounded-xl bg-muted/50 border-0 text-base focus-visible:ring-primary/30"
+            className="h-12 rounded-lg"
           />
         </div>
 
         {/* Scheduling */}
         <div className="space-y-3">
-          <Label className="flex items-center gap-2 font-semibold">
-            <Clock className="h-4 w-4 text-primary" /> When do you need it?
+          <Label className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wide">
+            <Clock className="h-3.5 w-3.5" /> When do you need it?
           </Label>
           <div className="grid grid-cols-2 gap-3">
-            <motion.div whileTap={{ scale: 0.97 }}>
-              <Button
-                variant={scheduling === "now" ? "default" : "outline"}
-                className={`w-full h-13 rounded-xl font-bold ${scheduling === "now" ? "gradient-primary shadow-glow" : "border-primary/20"}`}
-                onClick={() => setScheduling("now")}
-              >
-                ⚡ Right Now
-              </Button>
-            </motion.div>
-            <motion.div whileTap={{ scale: 0.97 }}>
-              <Button
-                variant={scheduling === "later" ? "default" : "outline"}
-                className={`w-full h-13 rounded-xl font-bold ${scheduling === "later" ? "gradient-primary shadow-glow" : "border-primary/20"}`}
-                onClick={() => setScheduling("later")}
-              >
-                <Calendar className="mr-2 h-4 w-4" /> Schedule
-              </Button>
-            </motion.div>
+            <button
+              className={`h-12 rounded-lg font-semibold text-sm border-2 transition-all ${
+                scheduling === "now"
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-foreground hover:border-foreground/30"
+              }`}
+              onClick={() => setScheduling("now")}
+            >
+              {scheduling === "now" && <Check className="inline h-4 w-4 mr-1" />}
+              Right Now
+            </button>
+            <button
+              className={`h-12 rounded-lg font-semibold text-sm border-2 transition-all flex items-center justify-center gap-1.5 ${
+                scheduling === "later"
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-foreground hover:border-foreground/30"
+              }`}
+              onClick={() => setScheduling("later")}
+            >
+              {scheduling === "later" && <Check className="h-4 w-4" />}
+              <Calendar className="h-4 w-4" /> Schedule
+            </button>
           </div>
           <AnimatePresence>
             {scheduling === "later" && (
@@ -215,7 +216,7 @@ const BookService = () => {
                   type="datetime-local"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="h-13 rounded-xl bg-muted/50 border-0"
+                  className="h-12 rounded-lg"
                   min={new Date().toISOString().slice(0, 16)}
                 />
               </motion.div>
@@ -224,14 +225,12 @@ const BookService = () => {
         </div>
 
         {/* Book Button */}
-        <motion.div whileTap={{ scale: 0.98 }}>
-          <Button
-            className="w-full h-14 text-lg font-extrabold rounded-2xl gradient-primary shadow-glow hover:opacity-90 transition-opacity"
-            onClick={handleBook}
-          >
-            Book Now
-          </Button>
-        </motion.div>
+        <Button
+          className="w-full h-14 text-base font-bold rounded-xl"
+          onClick={handleBook}
+        >
+          Book Now
+        </Button>
       </motion.main>
     </div>
   );
