@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
 import {
-  Star, ChevronRight, Camera, Phone, Mail, MapPin,
+  Star, ChevronRight, ChevronDown, Camera, Phone, Mail, MapPin,
   Wrench, Zap, LogOut, Shield, FileText, HelpCircle,
-  Pencil, Check, X, Plus, Trash2, Globe, Award, Bell
+  Pencil, Check, X, Plus, Trash2, Globe, Bell, Lock, Eye, EyeOff,
+  MessageCircle, AlertTriangle, Upload
 } from "lucide-react";
 
 const availableSkills = [
@@ -43,6 +44,30 @@ const HelperProfile = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
 
+  // Expandable sections
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  // Documents state
+  const [documents] = useState([
+    { name: "Aadhaar Card", status: "verified", uploaded: "Jan 10, 2025" },
+    { name: "PAN Card", status: "verified", uploaded: "Jan 10, 2025" },
+    { name: "Address Proof", status: "pending", uploaded: "Feb 1, 2025" },
+  ]);
+
+  // Privacy
+  const [profileVisible, setProfileVisible] = useState(true);
+  const [showPhone, setShowPhone] = useState(false);
+  const [showEmail, setShowEmail] = useState(true);
+
+  // Help
+  const [faqExpanded, setFaqExpanded] = useState<number | null>(null);
+  const faqs = [
+    { q: "How do I receive more job leads?", a: "Keep your profile complete, stay online during peak hours, and maintain a high completion rate to get more leads." },
+    { q: "When do I get paid?", a: "Payouts are processed every Monday and Thursday. Minimum payout is ₹500." },
+    { q: "How do I update my skills?", a: "Go to your Profile, tap Edit, and toggle the skills you want to offer." },
+    { q: "What if a customer cancels?", a: "If a customer cancels after you've arrived, you'll receive a cancellation fee." },
+  ];
+
   const rating = 4.8;
   const totalJobs = 156;
   const completionRate = 94;
@@ -70,6 +95,10 @@ const HelperProfile = () => {
   const saveProfile = () => {
     setEditing(false);
     toast({ title: "Profile updated", description: "Your changes have been saved." });
+  };
+
+  const toggleSection = (section: string) => {
+    setExpandedSection(prev => prev === section ? null : section);
   };
 
   return (
@@ -275,24 +304,182 @@ const HelperProfile = () => {
           </div>
         </div>
 
-        {/* Menu items */}
-        <div className="rounded-xl bg-card border sh-shadow overflow-hidden divide-y">
-          {[
-            { icon: Award, label: "Certifications", color: "text-[hsl(var(--sh-orange))]", bg: "bg-[hsl(var(--sh-orange))]/10" },
-            { icon: FileText, label: "Documents & ID", color: "text-primary", bg: "bg-primary/10" },
-            { icon: Shield, label: "Privacy & Security", color: "text-[hsl(var(--sh-green))]", bg: "bg-[hsl(var(--sh-green))]/10" },
-            { icon: HelpCircle, label: "Help & Support", color: "text-[hsl(var(--sh-purple))]", bg: "bg-[hsl(var(--sh-purple))]/10" },
-          ].map(item => (
-            <button key={item.label} className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-lg ${item.bg} flex items-center justify-center`}>
-                  <item.icon className={`h-4 w-4 ${item.color}`} />
-                </div>
-                <span className="text-sm font-semibold text-foreground">{item.label}</span>
+        {/* Documents & ID — expandable */}
+        <div className="rounded-xl bg-card border sh-shadow overflow-hidden">
+          <button onClick={() => toggleSection("documents")} className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-primary" />
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-          ))}
+              <span className="text-sm font-semibold text-foreground">Documents & ID</span>
+            </div>
+            <motion.div animate={{ rotate: expandedSection === "documents" ? 180 : 0 }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+          </button>
+          <AnimatePresence>
+            {expandedSection === "documents" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 space-y-2.5 border-t pt-3">
+                  {documents.map((doc) => (
+                    <div key={doc.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{doc.name}</p>
+                        <p className="text-[10px] text-muted-foreground">Uploaded {doc.uploaded}</p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        doc.status === "verified"
+                          ? "bg-[hsl(var(--sh-green))]/10 text-[hsl(var(--sh-green))]"
+                          : "bg-[hsl(var(--sh-orange))]/10 text-[hsl(var(--sh-orange))]"
+                      }`}>
+                        {doc.status === "verified" ? "✓ Verified" : "⏳ Pending"}
+                      </span>
+                    </div>
+                  ))}
+                  <button className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
+                    <Upload className="h-3.5 w-3.5" /> Upload New Document
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Privacy & Security — expandable */}
+        <div className="rounded-xl bg-card border sh-shadow overflow-hidden">
+          <button onClick={() => toggleSection("privacy")} className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-[hsl(var(--sh-green))]/10 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-[hsl(var(--sh-green))]" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">Privacy & Security</span>
+            </div>
+            <motion.div animate={{ rotate: expandedSection === "privacy" ? 180 : 0 }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+          </button>
+          <AnimatePresence>
+            {expandedSection === "privacy" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 space-y-3 border-t pt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      {profileVisible ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Profile Visibility</p>
+                        <p className="text-[10px] text-muted-foreground">Show profile to customers</p>
+                      </div>
+                    </div>
+                    <Switch checked={profileVisible} onCheckedChange={setProfileVisible} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Show Phone Number</p>
+                        <p className="text-[10px] text-muted-foreground">Display on your profile</p>
+                      </div>
+                    </div>
+                    <Switch checked={showPhone} onCheckedChange={setShowPhone} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Show Email</p>
+                        <p className="text-[10px] text-muted-foreground">Display on your profile</p>
+                      </div>
+                    </div>
+                    <Switch checked={showEmail} onCheckedChange={setShowEmail} />
+                  </div>
+                  <button className="w-full flex items-center gap-2.5 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-foreground">Change Password</p>
+                      <p className="text-[10px] text-muted-foreground">Update your account password</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Help & Support — expandable */}
+        <div className="rounded-xl bg-card border sh-shadow overflow-hidden">
+          <button onClick={() => toggleSection("help")} className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-[hsl(var(--sh-purple))]/10 flex items-center justify-center">
+                <HelpCircle className="h-4 w-4 text-[hsl(var(--sh-purple))]" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">Help & Support</span>
+            </div>
+            <motion.div animate={{ rotate: expandedSection === "help" ? 180 : 0 }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+          </button>
+          <AnimatePresence>
+            {expandedSection === "help" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 space-y-2 border-t pt-3">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">FAQs</p>
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} className="rounded-lg bg-muted/50 overflow-hidden">
+                      <button
+                        onClick={() => setFaqExpanded(prev => prev === idx ? null : idx)}
+                        className="w-full flex items-center justify-between p-3 text-left"
+                      >
+                        <span className="text-sm font-medium text-foreground pr-2">{faq.q}</span>
+                        <motion.div animate={{ rotate: faqExpanded === idx ? 180 : 0 }}>
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        </motion.div>
+                      </button>
+                      <AnimatePresence>
+                        {faqExpanded === idx && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <p className="px-3 pb-3 text-xs text-muted-foreground leading-relaxed">{faq.a}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-2">
+                    <button className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors">
+                      <MessageCircle className="h-3.5 w-3.5" /> Chat Support
+                    </button>
+                    <button className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Report Issue
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Logout */}

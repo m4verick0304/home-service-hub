@@ -80,18 +80,46 @@ const HelperEarnings = () => {
       </div>
 
       <div className="mx-auto max-w-lg px-4 -mt-3 space-y-4">
-        {/* Daily chart */}
+        {/* Daily chart — liquid flow bars */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-card border sh-shadow-md p-4">
           <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Daily Breakdown</h3>
-          <div className="flex items-end justify-between gap-2 h-28">
+          <div className="flex items-end justify-between gap-2 h-32">
             {dailyBreakdown.map((d, i) => {
               const heightPct = maxDayAmount > 0 ? (d.amount / maxDayAmount) * 100 : 0;
               const isToday = i === 3;
               return (
                 <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-[9px] font-bold text-muted-foreground">₹{d.amount}</span>
-                  <div className="w-full rounded-t-md relative" style={{ height: `${Math.max(heightPct, 4)}%` }}>
-                    <div className={`absolute inset-0 rounded-t-md ${isToday ? "bg-foreground" : "bg-primary/20"}`} />
+                  <div className="w-full relative" style={{ height: `${Math.max(heightPct, 4)}%` }}>
+                    <motion.div
+                      className="absolute inset-x-0 bottom-0 rounded-full overflow-hidden"
+                      initial={{ height: 0 }}
+                      animate={{ height: "100%" }}
+                      transition={{
+                        duration: 1.2,
+                        delay: i * 0.1,
+                        ease: [0.34, 1.56, 0.64, 1],
+                      }}
+                    >
+                      <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: isToday
+                            ? "linear-gradient(180deg, hsl(var(--sh-blue)) 0%, hsl(var(--foreground)) 100%)"
+                            : "linear-gradient(180deg, hsl(var(--primary) / 0.4) 0%, hsl(var(--primary) / 0.15) 100%)",
+                        }}
+                      />
+                      {/* Liquid shimmer */}
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)",
+                          backgroundSize: "100% 200%",
+                        }}
+                        animate={{ backgroundPosition: ["0% 0%", "0% 200%"] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: i * 0.15 }}
+                      />
+                    </motion.div>
                   </div>
                   <span className={`text-[10px] font-bold ${isToday ? "text-foreground" : "text-muted-foreground"}`}>{d.day}</span>
                 </div>

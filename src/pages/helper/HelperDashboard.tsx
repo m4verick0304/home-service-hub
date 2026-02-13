@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { HelperBottomNav } from "@/components/helper/HelperBottomNav";
 import { useRealtimeJobAlerts } from "@/hooks/useRealtimeJobAlerts";
+import { LeafletMap } from "@/components/shared/LeafletMap";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Star, Briefcase, Bell, ChevronRight,
   ToggleLeft, ToggleRight, Wrench, Zap, X,
@@ -26,12 +28,89 @@ const recentJobs = [
   { id: 3, service: "Wiring Work", client: "Vikram P.", date: "Feb 10", status: "cancelled" as const, amount: "—" },
 ];
 
+interface ServiceNotification {
+  id: string;
+  serviceName: string;
+  address: string | null;
+  time: Date;
+  read: boolean;
+}
+
 const HelperDashboard = () => {
   const navigate = useNavigate();
   const [isAvailable, setIsAvailable] = useState(true);
   const { alerts, dismissAlert } = useRealtimeJobAlerts();
+  const [userLat, setUserLat] = useState<number | undefined>();
+  const [userLng, setUserLng] = useState<number | undefined>();
+  const [notifications, setNotifications] = useState<ServiceNotification[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const initials = mockHelper.name.split(" ").map(n => n[0]).join("").slice(0, 2);
+
+  // Get GPS location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLat(pos.coords.latitude);
+          setUserLng(pos.coords.longitude);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, []);
+
+  // Listen for new bookings → notifications (only when online)
+  const fetchServiceName = useCallback(async (serviceId: string): Promise<string> => {
+    const { data } = await supabase
+      .from("services")
+      .select("name")
+      .eq("id", serviceId)
+      .maybeSingle();
+    return data?.name || "Service Request";
+  }, []);
+
+  useEffect(() => {
+    if (!isAvailable) return;
+
+    const channel = supabase
+      .channel("helper-notif-center")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "bookings" },
+        async (payload) => {
+          const booking = payload.new as any;
+          const serviceName = await fetchServiceName(booking.service_id);
+          const notif: ServiceNotification = {
+            id: `${booking.id}-${Date.now()}`,
+            serviceName,
+            address: booking.address,
+            time: new Date(),
+            read: false,
+          };
+          setNotifications(prev => [notif, ...prev].slice(0, 30));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAvailable, fetchServiceName]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const timeAgo = (date: Date) => {
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return `${Math.floor(diff / 3600)}h ago`;
+  };
 
   return (
     <div className="min-h-screen bg-muted/50 pb-20">
@@ -51,12 +130,21 @@ const HelperDashboard = () => {
               </div>
             </div>
           </div>
-          <button onClick={() => navigate("/helper/job-request")} className="relative p-2 rounded-full hover:bg-background/10 transition-colors">
+          {/* Notification bell */}
+          <button
+            onClick={() => setShowNotifications(o => !o)}
+            className="relative p-2 rounded-full hover:bg-background/10 transition-colors"
+          >
             <Bell className="h-5 w-5 text-background/80" />
-            {alerts.length > 0 && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-[hsl(var(--sh-orange))] border border-foreground" />}
+            {unreadCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[8px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
         </div>
 
+        {/* Online/Offline toggle */}
         <button
           onClick={() => setIsAvailable(!isAvailable)}
           className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all ${
@@ -67,16 +155,78 @@ const HelperDashboard = () => {
             {isAvailable ? <ToggleRight className="h-7 w-7 text-[hsl(var(--sh-green))]" /> : <ToggleLeft className="h-7 w-7 text-background/40" />}
             <div className="text-left">
               <p className="text-sm font-bold text-background">{isAvailable ? "You're Online" : "You're Offline"}</p>
-              <p className="text-[11px] text-background/50">{isAvailable ? "Accepting new leads" : "Go online to receive leads"}</p>
+              <p className="text-[11px] text-background/50">{isAvailable ? "Receiving job notifications" : "Go online to receive notifications"}</p>
             </div>
           </div>
           <div className={`h-3 w-3 rounded-full ${isAvailable ? "bg-[hsl(var(--sh-green))] animate-pulse" : "bg-background/30"}`} />
         </button>
       </div>
 
+      {/* Notification dropdown */}
+      <AnimatePresence>
+        {showNotifications && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="absolute right-4 top-28 w-80 rounded-2xl bg-card border sh-shadow-lg z-50 overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="text-sm font-bold text-foreground">Notifications</h3>
+              <div className="flex gap-2 items-center">
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-[11px] text-primary font-semibold hover:underline">Mark all read</button>
+                )}
+                <button onClick={() => setShowNotifications(false)}><X className="h-4 w-4 text-muted-foreground" /></button>
+              </div>
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center">
+                  <Bell className="h-7 w-7 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No notifications yet</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                    {isAvailable ? "You'll see new service requests here" : "Go online to receive notifications"}
+                  </p>
+                </div>
+              ) : (
+                notifications.map(n => (
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-3 px-4 py-3 border-b last:border-0 transition-colors ${!n.read ? "bg-primary/5" : ""}`}
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-[hsl(var(--sh-orange))]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Wrench className="h-4 w-4 text-[hsl(var(--sh-orange))]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${!n.read ? "font-bold text-foreground" : "font-medium text-foreground"}`}>
+                        🔔 New: {n.serviceName}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{n.address || "Nearby location"}</p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">{timeAgo(n.time)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="mx-auto max-w-lg px-4 -mt-3 space-y-4">
+        {/* Live GPS Map */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <LeafletMap
+            className="h-48"
+            userLat={userLat}
+            userLng={userLng}
+            showHelper={false}
+            userLabel="You"
+          />
+        </motion.div>
+
         {/* Earnings Card */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-card border sh-shadow-md overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-2xl bg-card border sh-shadow-md overflow-hidden">
           <div className="p-4 pb-3">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Today's Summary</h3>
