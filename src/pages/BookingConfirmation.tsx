@@ -5,18 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Loader2, CheckCircle2, Clock, Phone, User, MapPin, Hash, AlertCircle, CircleDot, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Phone, User, MapPin, Hash, AlertCircle, CircleDot, ArrowLeft } from "lucide-react";
 
 const statusConfig: Record<string, { icon: React.ReactNode; label: string; color: string; bgColor: string }> = {
-  confirmed: { icon: <CheckCircle2 className="h-12 w-12 text-green-600" />, label: "Confirmed", color: "text-green-700", bgColor: "bg-green-100" },
-  ongoing: { icon: <CircleDot className="h-12 w-12 text-yellow-600 animate-pulse" />, label: "Ongoing", color: "text-yellow-700", bgColor: "bg-yellow-100" },
-  completed: { icon: <CheckCircle2 className="h-12 w-12 text-primary" />, label: "Completed", color: "text-primary", bgColor: "bg-accent" },
-  cancelled: { icon: <AlertCircle className="h-12 w-12 text-destructive" />, label: "Cancelled", color: "text-destructive", bgColor: "bg-red-100" },
-};
-
-const infoItem = {
-  hidden: { opacity: 0, x: -10 },
-  show: { opacity: 1, x: 0 },
+  confirmed: { icon: <CheckCircle2 className="h-10 w-10" style={{ color: "hsl(145, 63%, 42%)" }} />, label: "Confirmed", color: "text-foreground", bgColor: "uc-badge-green" },
+  ongoing: { icon: <CircleDot className="h-10 w-10 animate-pulse" style={{ color: "hsl(43, 96%, 56%)" }} />, label: "Ongoing", color: "text-foreground", bgColor: "uc-badge-gold" },
+  completed: { icon: <CheckCircle2 className="h-10 w-10 text-primary" />, label: "Completed", color: "text-foreground", bgColor: "uc-badge-blue" },
+  cancelled: { icon: <AlertCircle className="h-10 w-10 text-destructive" />, label: "Cancelled", color: "text-destructive", bgColor: "bg-destructive/10" },
 };
 
 const BookingConfirmation = () => {
@@ -51,8 +46,8 @@ const BookingConfirmation = () => {
 
   if (!booking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-foreground" />
       </div>
     );
   }
@@ -68,102 +63,115 @@ const BookingConfirmation = () => {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md space-y-6 text-center"
-      >
-        {/* Status Icon */}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="uc-header sticky top-0 z-50">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-6 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10 rounded-lg"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-base font-bold text-white">Booking Details</h1>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl px-6 py-8">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-          className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full ${status.bgColor}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="space-y-6"
         >
-          {status.icon}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h1 className="text-3xl font-extrabold text-foreground">
-            {booking.status === "confirmed" ? "Booking Confirmed!" : `Booking ${status.label}`}
-          </h1>
-          <p className="text-muted-foreground mt-2 font-medium">
-            {booking.status === "confirmed" && "Your service provider is on the way"}
-            {booking.status === "ongoing" && "Service is in progress"}
-            {booking.status === "completed" && "Service has been completed"}
-            {booking.status === "cancelled" && "This booking was cancelled"}
-          </p>
-          <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 rounded-full px-3 py-1.5">
-            <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            Live updates enabled
-          </div>
-        </motion.div>
-
-        {/* Booking Details */}
-        <Card className="border-0 shadow-elevated text-left overflow-hidden">
-          <div className="h-1 gradient-primary" />
-          <CardContent className="p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Status</span>
-              <Badge className={`${status.bgColor} ${status.color} border-0 font-bold`}>
-                {status.label}
-              </Badge>
-            </div>
-
+          {/* Status Card */}
+          <div className="text-center py-6">
             <motion.div
-              initial="hidden"
-              animate="show"
-              transition={{ staggerChildren: 0.05, delayChildren: 0.4 }}
-              className="space-y-4"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted mb-4"
             >
-              {infoItems.map(({ icon: Icon, label, value, mono }) => (
-                <motion.div key={label} variants={infoItem} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/60">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className={`text-sm font-bold ${mono ? "font-mono" : ""}`}>{value}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {status.icon}
             </motion.div>
+            <h1 className="text-2xl font-black text-foreground tracking-tight">
+              {booking.status === "confirmed" ? "Booking Confirmed!" : `Booking ${status.label}`}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {booking.status === "confirmed" && "Your service provider is on the way"}
+              {booking.status === "ongoing" && "Service is in progress"}
+              {booking.status === "completed" && "Service has been completed"}
+              {booking.status === "cancelled" && "This booking was cancelled"}
+            </p>
+            <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted rounded-full px-3 py-1.5 font-medium">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" style={{ backgroundColor: "hsl(145, 63%, 42%)" }} />
+              Live updates enabled
+            </div>
+          </div>
 
-            {service && (
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground">Service</p>
-                <p className="text-sm font-bold">{service.name}</p>
-                <p className="text-sm text-primary font-bold">{service.price_range}</p>
+          {/* Details Card */}
+          <Card className="border shadow-uc rounded-xl overflow-hidden">
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-center justify-between pb-4 border-b">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</span>
+                <Badge className={`${status.bgColor} border-0 font-bold text-xs`}>
+                  {status.label}
+                </Badge>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <div className="space-y-3">
-          <motion.div whileTap={{ scale: 0.98 }}>
+              <motion.div
+                initial="hidden"
+                animate="show"
+                transition={{ staggerChildren: 0.04, delayChildren: 0.2 }}
+                className="space-y-4"
+              >
+                {infoItems.map(({ icon: Icon, label, value, mono }) => (
+                  <motion.div
+                    key={label}
+                    variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted flex-shrink-0">
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
+                      <p className={`text-sm font-bold text-foreground ${mono ? "font-mono" : ""} truncate`}>{value}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {service && (
+                <div className="pt-4 border-t">
+                  <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Service</p>
+                  <p className="text-sm font-bold text-foreground">{service.name}</p>
+                  <p className="text-sm font-bold text-foreground">{service.price_range}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <div className="space-y-3">
             <Button
-              className="w-full h-13 font-bold rounded-2xl gradient-primary shadow-glow hover:opacity-90"
+              className="w-full h-12 font-bold rounded-xl"
               onClick={() => navigate("/history")}
             >
               Go to Booking History
-              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </motion.div>
-          <Button
-            variant="outline"
-            className="w-full h-12 font-semibold rounded-2xl border-primary/20"
-            onClick={() => navigate("/")}
-          >
-            Back to Home
-          </Button>
-        </div>
-      </motion.div>
+            <Button
+              variant="outline"
+              className="w-full h-12 font-semibold rounded-xl"
+              onClick={() => navigate("/")}
+            >
+              Back to Home
+            </Button>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };
