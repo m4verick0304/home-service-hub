@@ -6,10 +6,16 @@ import { AppHeader } from "@/components/shared/AppHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { HelperCard } from "@/components/shared/HelperCard";
 import { LeafletMap } from "@/components/shared/LeafletMap";
+import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Loader2, CheckCircle2, Clock, Phone, MapPin, Hash, AlertCircle, CircleDot, MessageSquare } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Phone, MapPin, Hash, AlertCircle, CircleDot, XCircle } from "lucide-react";
 
 const statusConfig: Record<string, { icon: React.ReactNode; title: string; subtitle: string }> = {
+  pending: {
+    icon: <Clock className="h-8 w-8 text-[hsl(var(--sh-orange))] animate-pulse" />,
+    title: "Waiting for Helper",
+    subtitle: "A helper will accept your request shortly",
+  },
   confirmed: {
     icon: <CheckCircle2 className="h-8 w-8 text-[hsl(var(--sh-green))]" />,
     title: "Helper Assigned!",
@@ -37,6 +43,23 @@ const BookingConfirmation = () => {
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
   const [service, setService] = useState<any>(null);
+  const [userLat, setUserLat] = useState(28.4595);
+  const [userLng, setUserLng] = useState(77.0266);
+  const [cancelling, setCancelling] = useState(false);
+
+  // Get real user GPS
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLat(pos.coords.latitude);
+          setUserLng(pos.coords.longitude);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (!bookingId) return;
@@ -52,6 +75,18 @@ const BookingConfirmation = () => {
     return () => { supabase.removeChannel(channel); };
   }, [bookingId]);
 
+  const handleCancel = async () => {
+    if (!bookingId) return;
+    setCancelling(true);
+    const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
+    setCancelling(false);
+    if (error) {
+      toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Booking cancelled", description: "Your booking has been cancelled." });
+    }
+  };
+
   if (!booking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -61,6 +96,7 @@ const BookingConfirmation = () => {
   }
 
   const status = statusConfig[booking.status] || statusConfig.confirmed;
+  const canCancel = booking.status === "pending" || booking.status === "confirmed";
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,26 +110,32 @@ const BookingConfirmation = () => {
           </motion.div>
           <h1 className="text-xl font-black text-foreground tracking-tight">{status.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">{status.subtitle}</p>
-          <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-primary bg-primary/10 rounded-full px-3 py-1.5 font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Live tracking enabled
-          </div>
+          {booking.status !== "cancelled" && booking.status !== "completed" && (
+            <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-primary bg-primary/10 rounded-full px-3 py-1.5 font-semibold">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Live tracking enabled
+            </div>
+          )}
         </motion.div>
 
         {/* Live Map */}
-        <LeafletMap
-          className="h-[280px]"
-          showHelper={booking.status !== "cancelled"}
-          helperLabel={booking.provider_name?.split(" ")[0] || "Helper"}
-        />
+        {booking.status !== "cancelled" && (
+          <LeafletMap
+            className="h-[280px]"
+            userLat={userLat}
+            userLng={userLng}
+            showHelper={booking.status !== "pending"}
+            helperLabel={booking.provider_name?.split(" ")[0] || "Helper"}
+          />
+        )}
 
         {/* Helper Card */}
-        {booking.provider_name && (
+        {booking.provider_name && booking.status !== "cancelled" && (
           <HelperCard
             name={booking.provider_name}
             rating={4.8}
             distance="2.3 km"
-            eta={`${booking.eta_minutes} min`}
+            eta={`${booking.eta_minutes || "—"} min`}
             status={booking.status === "confirmed" ? "on_the_way" : booking.status === "ongoing" ? "working" : undefined}
           />
         )}
@@ -106,10 +148,10 @@ const BookingConfirmation = () => {
           </div>
           {[
             { icon: Hash, label: "Booking ID", value: booking.id.slice(0, 8).toUpperCase(), mono: true },
-            { icon: Phone, label: "Contact", value: booking.provider_phone },
-            { icon: Clock, label: "ETA", value: `${booking.eta_minutes} minutes` },
+            ...(booking.provider_phone ? [{ icon: Phone, label: "Contact", value: booking.provider_phone }] : []),
+            ...(booking.eta_minutes ? [{ icon: Clock, label: "ETA", value: `${booking.eta_minutes} minutes` }] : []),
             { icon: MapPin, label: "Address", value: booking.address },
-          ].map(({ icon: Icon, label, value, mono }) => (
+          ].map(({ icon: Icon, label, value, mono }: any) => (
             <motion.div key={label} variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }} className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted flex-shrink-0">
                 <Icon className="h-4 w-4 text-muted-foreground" />
@@ -130,9 +172,21 @@ const BookingConfirmation = () => {
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-12 rounded-xl font-semibold" onClick={() => navigate("/history")}>
-            <Clock className="h-4 w-4 mr-2" /> History
-          </Button>
+          {canCancel ? (
+            <Button
+              variant="outline"
+              className="h-12 rounded-xl font-semibold border-destructive/30 text-destructive hover:bg-destructive/5"
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <XCircle className="h-4 w-4 mr-2" />}
+              Cancel Booking
+            </Button>
+          ) : (
+            <Button variant="outline" className="h-12 rounded-xl font-semibold" onClick={() => navigate("/history")}>
+              <Clock className="h-4 w-4 mr-2" /> History
+            </Button>
+          )}
           <Button className="h-12 rounded-xl font-bold sh-gradient-blue border-0 text-white" onClick={() => navigate("/")}>
             Back to Home
           </Button>

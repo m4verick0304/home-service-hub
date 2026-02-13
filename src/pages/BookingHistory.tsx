@@ -5,8 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AppHeader } from "@/components/shared/AppHeader";
+import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Calendar, Loader2, Inbox, ChevronRight, User } from "lucide-react";
+import { Calendar, Loader2, Inbox, ChevronRight, User, XCircle } from "lucide-react";
 import { format } from "date-fns";
 
 const item = {
@@ -86,7 +87,27 @@ const BookingHistory = () => {
                         </span>
                       )}
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                    <div className="flex items-center gap-2">
+                      {(booking.status === "pending" || booking.status === "confirmed") && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id).then(({ error }) => {
+                              if (error) {
+                                toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
+                              } else {
+                                toast({ title: "Booking cancelled" });
+                              }
+                            });
+                          }}
+                          className="text-destructive hover:bg-destructive/10 rounded-lg p-1 transition-colors"
+                          title="Cancel booking"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </button>
+                      )}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                    </div>
                   </div>
                 </button>
               </motion.div>

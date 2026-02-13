@@ -23,7 +23,7 @@ const paymentOptions: { id: PaymentMethod; label: string; desc: string; icon: an
   { id: "netbanking", label: "Net Banking", desc: "All major banks supported", icon: Building2 },
 ];
 
-const providerNames = ["Rajesh Kumar", "Priya Sharma", "Amit Patel", "Sunita Devi", "Vikram Singh"];
+
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -74,17 +74,11 @@ const Checkout = () => {
     // Create bookings for each cart item
     let lastBookingId = "";
     for (const item of items) {
-      const providerName = providerNames[Math.floor(Math.random() * providerNames.length)];
-      const eta = Math.floor(Math.random() * 30) + 15;
-
       const { data, error } = await supabase.from("bookings").insert({
         user_id: profile.id,
         service_id: item.service.id,
         address,
-        provider_name: providerName,
-        provider_phone: `+91 ${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-        status: "confirmed",
-        eta_minutes: eta,
+        status: "pending",
         scheduled_at: new Date().toISOString(),
       }).select().single();
 

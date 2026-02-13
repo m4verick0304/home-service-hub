@@ -16,8 +16,8 @@ interface LeafletMapProps {
 
 export function LeafletMap({
   className,
-  userLat = 28.4595,
-  userLng = 77.0266,
+  userLat: propUserLat,
+  userLng: propUserLng,
   helperLat,
   helperLng,
   showHelper = false,
@@ -28,7 +28,37 @@ export function LeafletMap({
   const mapInstance = useRef<L.Map | null>(null);
   const helperMarkerRef = useRef<L.Marker | null>(null);
   const routeLineRef = useRef<L.Polyline | null>(null);
+  const [userLat, setUserLat] = useState(propUserLat ?? 28.4595);
+  const [userLng, setUserLng] = useState(propUserLng ?? 77.0266);
   const [simHelperPos, setSimHelperPos] = useState({ lat: helperLat ?? userLat + 0.012, lng: helperLng ?? userLng - 0.015 });
+
+  // Get real GPS location for user
+  useEffect(() => {
+    if (propUserLat !== undefined && propUserLng !== undefined) {
+      setUserLat(propUserLat);
+      setUserLng(propUserLng);
+      return;
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLat(pos.coords.latitude);
+          setUserLng(pos.coords.longitude);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, [propUserLat, propUserLng]);
+
+  // Update helper starting position when user position changes
+  useEffect(() => {
+    if (helperLat !== undefined && helperLng !== undefined) {
+      setSimHelperPos({ lat: helperLat, lng: helperLng });
+    } else {
+      setSimHelperPos({ lat: userLat + 0.012, lng: userLng - 0.015 });
+    }
+  }, [userLat, userLng, helperLat, helperLng]);
 
   // Simulate helper movement
   useEffect(() => {

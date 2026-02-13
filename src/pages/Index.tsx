@@ -135,10 +135,10 @@ const Index = () => {
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 h-16">
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-2.5">
+            <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl sh-gradient-blue text-white text-[10px] font-black tracking-wider">SH</div>
               <span className="text-lg font-extrabold tracking-tight text-foreground hidden sm:block">SmartHelper</span>
-            </div>
+            </button>
             <button
               onClick={detectLocation}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border hover:bg-muted transition-colors text-sm"

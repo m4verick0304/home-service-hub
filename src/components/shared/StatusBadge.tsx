@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "available" | "busy" | "assigned" | "searching" | "online" | "offline" | "confirmed" | "ongoing" | "completed" | "cancelled" | "on_the_way" | "working";
+  status: "available" | "busy" | "assigned" | "searching" | "online" | "offline" | "pending" | "confirmed" | "ongoing" | "completed" | "cancelled" | "on_the_way" | "working";
   className?: string;
   pulse?: boolean;
 }
@@ -12,6 +12,7 @@ const statusStyles: Record<string, { bg: string; text: string; dot: string }> = 
   busy: { bg: "bg-[hsl(var(--sh-orange-light))]", text: "text-[hsl(var(--sh-orange))]", dot: "bg-[hsl(var(--sh-orange))]" },
   assigned: { bg: "bg-[hsl(var(--sh-blue-light))]", text: "text-[hsl(var(--sh-blue))]", dot: "bg-[hsl(var(--sh-blue))]" },
   searching: { bg: "bg-[hsl(var(--sh-purple-light))]", text: "text-[hsl(var(--sh-purple))]", dot: "bg-[hsl(var(--sh-purple))]" },
+  pending: { bg: "bg-[hsl(var(--sh-orange-light))]", text: "text-[hsl(var(--sh-orange))]", dot: "bg-[hsl(var(--sh-orange))]" },
   confirmed: { bg: "bg-[hsl(var(--sh-blue-light))]", text: "text-[hsl(var(--sh-blue))]", dot: "bg-[hsl(var(--sh-blue))]" },
   ongoing: { bg: "bg-[hsl(var(--sh-orange-light))]", text: "text-[hsl(var(--sh-orange))]", dot: "bg-[hsl(var(--sh-orange))]" },
   on_the_way: { bg: "bg-[hsl(var(--sh-orange-light))]", text: "text-[hsl(var(--sh-orange))]", dot: "bg-[hsl(var(--sh-orange))]" },
@@ -27,6 +28,7 @@ const statusLabels: Record<string, string> = {
   busy: "Busy",
   assigned: "Assigned",
   searching: "Searching",
+  pending: "Pending",
   confirmed: "Confirmed",
   ongoing: "Ongoing",
   on_the_way: "On the Way",

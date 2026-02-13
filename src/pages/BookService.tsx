@@ -39,8 +39,6 @@ const iconMap: Record<string, React.ReactNode> = {
   Camera: <Camera className="h-6 w-6" />,
 };
 
-const providerNames = ["Rajesh Kumar", "Priya Sharma", "Amit Patel", "Sunita Devi", "Vikram Singh"];
-
 const BookService = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
@@ -51,6 +49,8 @@ const BookService = () => {
   const [scheduling, setScheduling] = useState<"now" | "later">("now");
   const [scheduledDate, setScheduledDate] = useState("");
   const [searching, setSearching] = useState(false);
+  const [waitingForHelper, setWaitingForHelper] = useState(false);
+  const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -94,6 +94,34 @@ const BookService = () => {
     if (profile?.address) setAddress(profile.address);
   }, [profile]);
 
+  // Listen for helper acceptance (status change from pending to confirmed)
+  useEffect(() => {
+    if (!currentBookingId || !waitingForHelper) return;
+
+    const channel = supabase
+      .channel(`booking-accept-${currentBookingId}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "bookings",
+        filter: `id=eq.${currentBookingId}`,
+      }, (payload) => {
+        const newStatus = (payload.new as any).status;
+        if (newStatus === "confirmed") {
+          setWaitingForHelper(false);
+          setSearching(false);
+          navigate(`/confirmation/${currentBookingId}`);
+        } else if (newStatus === "cancelled") {
+          setWaitingForHelper(false);
+          setSearching(false);
+          toast({ title: "Booking cancelled", description: "The booking was cancelled.", variant: "destructive" });
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentBookingId, waitingForHelper, navigate]);
+
   const handleBook = async () => {
     if (!profile || !service) return;
     if (!address.trim()) {
@@ -101,27 +129,22 @@ const BookService = () => {
       return;
     }
     setSearching(true);
-    await new Promise((r) => setTimeout(r, 3000));
 
-    const providerName = providerNames[Math.floor(Math.random() * providerNames.length)];
-    const eta = Math.floor(Math.random() * 30) + 15;
-
+    // Create booking with "pending" status — waits for helper to accept
     const { data, error } = await supabase.from("bookings").insert({
       user_id: profile.id,
       service_id: service.id,
       address,
-      provider_name: providerName,
-      provider_phone: `+91 ${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-      status: "confirmed",
-      eta_minutes: eta,
+      status: "pending",
       scheduled_at: scheduling === "later" && scheduledDate ? new Date(scheduledDate).toISOString() : new Date().toISOString(),
     }).select().single();
 
-    setSearching(false);
     if (error) {
+      setSearching(false);
       toast({ title: "Booking failed", description: error.message, variant: "destructive" });
     } else if (data) {
-      navigate(`/confirmation/${data.id}`);
+      setCurrentBookingId(data.id);
+      setWaitingForHelper(true);
     }
   };
 
@@ -144,13 +167,36 @@ const BookService = () => {
           </div>
         </motion.div>
         <div className="text-center">
-          <h2 className="text-xl font-black text-foreground">Finding nearest helper...</h2>
-          <p className="text-muted-foreground mt-2 text-sm">Searching for the best {service.name.toLowerCase()} near you</p>
+          <h2 className="text-xl font-black text-foreground">
+            {waitingForHelper ? "Waiting for helper to accept..." : "Finding nearest helper..."}
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm">
+            {waitingForHelper
+              ? "A helper has been notified. They'll accept your request shortly."
+              : `Searching for the best ${service.name.toLowerCase()} near you`}
+          </p>
           <div className="flex justify-center gap-1.5 mt-5">
             {[0, 1, 2].map((i) => (
               <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }} className="h-2.5 w-2.5 rounded-full bg-primary" />
             ))}
           </div>
+          {waitingForHelper && (
+            <Button
+              variant="outline"
+              className="mt-6 rounded-xl"
+              onClick={async () => {
+                if (currentBookingId) {
+                  await supabase.from("bookings").update({ status: "cancelled" }).eq("id", currentBookingId);
+                }
+                setSearching(false);
+                setWaitingForHelper(false);
+                setCurrentBookingId(null);
+                toast({ title: "Booking cancelled" });
+              }}
+            >
+              Cancel Request
+            </Button>
+          )}
         </div>
       </div>
     );
