@@ -18,6 +18,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
 import { useCart } from "@/contexts/CartContext";
+import CircularGallery from "@/components/CircularGallery";
 import ucSalon from "@/assets/uc-salon.jpg";
 import ucCleaning from "@/assets/uc-cleaning.jpg";
 import ucAcRepair from "@/assets/uc-ac-repair.jpg";
@@ -373,14 +374,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Services Belt — infinite scrolling marquee */}
+      {/* Services — Circular Gallery */}
       {services.length > 0 && (
-        <section className="py-14 md:py-20 overflow-hidden">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-8">
+        <section className="py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-6">
             <div className="flex items-end justify-between">
               <div>
                 <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Our Services</h2>
-                <p className="text-sm text-muted-foreground mt-1">Professional help for every need</p>
+                <p className="text-sm text-muted-foreground mt-1">Drag or scroll to explore</p>
               </div>
               <button
                 onClick={() => handleServiceClick()}
@@ -390,32 +391,17 @@ const Index = () => {
               </button>
             </div>
           </div>
-          <div className="relative group">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-            <div className="flex animate-marquee group-hover:[animation-play-state:paused] w-max gap-4 py-2">
-              {[...services, ...services, ...services].map((svc, i) => {
-                const IconComp = iconMap[svc.icon || ""] || Sparkles;
-                return (
-                  <motion.button
-                    key={`${svc.id}-${i}`}
-                    whileHover={{ y: -6, scale: 1.05 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow cursor-pointer min-w-[120px]"
-                    onClick={() => handleServiceClick(svc.id)}
-                  >
-                    <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} transition-transform`}>
-                      <IconComp className="h-6 w-6" />
-                    </div>
-                    <span className="text-xs font-bold text-foreground text-center leading-tight whitespace-nowrap">{svc.name}</span>
-                    {svc.price_range && (
-                      <span className="text-[10px] text-muted-foreground font-medium">{svc.price_range}</span>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
+          <div className="h-[500px] w-full">
+            <CircularGallery
+              items={services.map(svc => ({
+                image: `https://picsum.photos/seed/${svc.id}/800/600`,
+                text: svc.name
+              }))}
+              bend={3}
+              textColor="hsl(var(--foreground))"
+              borderRadius={0.05}
+              font="bold 24px 'Plus Jakarta Sans', sans-serif"
+            />
           </div>
         </section>
       )}
