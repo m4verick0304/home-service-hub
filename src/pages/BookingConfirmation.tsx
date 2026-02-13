@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/shared/AppHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { HelperCard } from "@/components/shared/HelperCard";
-import { MapPlaceholder } from "@/components/shared/MapPlaceholder";
+import { LeafletMap } from "@/components/shared/LeafletMap";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle2, Clock, Phone, MapPin, Hash, AlertCircle, CircleDot, MessageSquare } from "lucide-react";
 
@@ -80,9 +80,9 @@ const BookingConfirmation = () => {
           </div>
         </motion.div>
 
-        {/* Map */}
-        <MapPlaceholder
-          className="h-[220px]"
+        {/* Live Map */}
+        <LeafletMap
+          className="h-[280px]"
           showHelper={booking.status !== "cancelled"}
           helperLabel={booking.provider_name?.split(" ")[0] || "Helper"}
         />

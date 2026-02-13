@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tables } from "@/integrations/supabase/types";
 import { AppHeader } from "@/components/shared/AppHeader";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -103,15 +104,18 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <AppHeader
         rightContent={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white/80 hover:text-white hover:bg-white/10 rounded-xl hidden sm:flex"
-            onClick={() => navigate("/history")}
-          >
-            <History className="h-4 w-4 mr-1.5" />
-            Bookings
-          </Button>
+          <div className="flex items-center gap-1">
+            <NotificationCenter />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/80 hover:text-white hover:bg-white/10 rounded-xl hidden sm:flex"
+              onClick={() => navigate("/history")}
+            >
+              <History className="h-4 w-4 mr-1.5" />
+              Bookings
+            </Button>
+          </div>
         }
         initials={initials}
         profilePath="/profile"
