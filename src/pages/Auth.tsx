@@ -6,20 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Zap, Shield, Star, ArrowLeft } from "lucide-react";
+import { Loader2, Zap, Shield, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lanyard from "@/components/Lanyard";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     if (isSignUp) {
@@ -32,6 +35,24 @@ const Auth = () => {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
+      else navigate("/dashboard");
+    }
+    setLoading(false);
+  };
+
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    if (!otpSent) {
+      const { error } = await supabase.auth.signInWithOtp({ phone });
+      if (error) toast({ title: "Failed to send OTP", description: error.message, variant: "destructive" });
+      else {
+        setOtpSent(true);
+        toast({ title: "OTP sent!", description: "Check your phone for the verification code." });
+      }
+    } else {
+      const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+      if (error) toast({ title: "Verification failed", description: error.message, variant: "destructive" });
       else navigate("/dashboard");
     }
     setLoading(false);
@@ -95,34 +116,73 @@ const Auth = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <AnimatePresence mode="popLayout">
-              {isSignUp && (
-                <motion.div key="name" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
-                  <Label htmlFor="name" className="text-xs font-semibold text-foreground">Full Name</Label>
-                  <Input id="name" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required className="h-12 rounded-xl" />
-                </motion.div>
-              )}
-              {isSignUp && (
-                <motion.div key="phone" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
-                  <Label htmlFor="phone" className="text-xs font-semibold text-foreground">Phone Number</Label>
-                  <Input id="phone" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} required className="h-12 rounded-xl" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-semibold text-foreground">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 rounded-xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-semibold text-foreground">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="h-12 rounded-xl" />
-            </div>
-            <Button type="submit" className="w-full h-12 text-sm font-bold rounded-xl sh-gradient-blue border-0 text-white" disabled={loading}>
-              {loading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
-              {isSignUp ? "Create Account" : "Sign In"}
-            </Button>
-          </form>
+          {/* Auth Method Toggle */}
+          <div className="flex rounded-xl bg-muted p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => { setAuthMethod("email"); setOtpSent(false); }}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-all ${authMethod === "email" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMethod("phone"); setOtpSent(false); }}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-all ${authMethod === "phone" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
+            >
+              Phone
+            </button>
+          </div>
+
+          {authMethod === "email" ? (
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <AnimatePresence mode="popLayout">
+                {isSignUp && (
+                  <motion.div key="name" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
+                    <Label htmlFor="name" className="text-xs font-semibold text-foreground">Full Name</Label>
+                    <Input id="name" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required className="h-12 rounded-xl" />
+                  </motion.div>
+                )}
+                {isSignUp && (
+                  <motion.div key="phone-field" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
+                    <Label htmlFor="phone-email" className="text-xs font-semibold text-foreground">Phone Number</Label>
+                    <Input id="phone-email" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} className="h-12 rounded-xl" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold text-foreground">Email</Label>
+                <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-semibold text-foreground">Password</Label>
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="h-12 rounded-xl" />
+              </div>
+              <Button type="submit" className="w-full h-12 text-sm font-bold rounded-xl sh-gradient-blue border-0 text-white" disabled={loading}>
+                {loading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                {isSignUp ? "Create Account" : "Sign In"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="phone-auth" className="text-xs font-semibold text-foreground">Phone Number</Label>
+                <Input id="phone-auth" type="tel" placeholder="+91 9876543210" value={phone} onChange={e => setPhone(e.target.value)} required className="h-12 rounded-xl" />
+              </div>
+              <AnimatePresence mode="popLayout">
+                {otpSent && (
+                  <motion.div key="otp" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5 overflow-hidden">
+                    <Label htmlFor="otp" className="text-xs font-semibold text-foreground">Verification Code</Label>
+                    <Input id="otp" type="text" inputMode="numeric" placeholder="123456" value={otp} onChange={e => setOtp(e.target.value)} required maxLength={6} className="h-12 rounded-xl tracking-[0.3em] text-center font-mono" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <Button type="submit" className="w-full h-12 text-sm font-bold rounded-xl sh-gradient-blue border-0 text-white" disabled={loading}>
+                {loading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                {otpSent ? "Verify & Sign In" : "Send OTP"}
+              </Button>
+            </form>
+          )}
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
