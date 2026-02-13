@@ -1,19 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Shield, Clock, Star, MapPin, ArrowRight,
   Wrench, Sparkles, ChefHat, Paintbrush, Hammer,
   Users, CheckCircle2, Headphones, Search,
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets,
-  User, GlassWater, Truck, Camera, ChevronRight
+  User, GlassWater, Truck, Camera, ChevronRight, X
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ChatbotWidget } from "@/components/ChatbotWidget";
 import ucSalon from "@/assets/uc-salon.jpg";
 import ucCleaning from "@/assets/uc-cleaning.jpg";
 import ucAcRepair from "@/assets/uc-ac-repair.jpg";
@@ -46,12 +47,6 @@ const colorMap: Record<string, string> = {
   Camera: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
 };
 
-const promoCards = [
-  { image: ucSalon, title: "Shine your look", subtitle: "Salon for Women", color: "from-pink-600/80" },
-  { image: ucCleaning, title: "Deep clean your home", subtitle: "Professional Cleaning", color: "from-emerald-600/80" },
-  { image: ucAcRepair, title: "Beat the heat", subtitle: "AC Service & Repair", color: "from-sky-600/80" },
-];
-
 const reviews = [
   { name: "Priya S.", rating: 5, text: "Amazing service! The plumber arrived in 12 minutes and fixed everything perfectly.", service: "Plumber" },
   { name: "Rahul M.", rating: 5, text: "Best cleaning service I've used. Professional, thorough and on time.", service: "Deep Cleaning" },
@@ -64,6 +59,7 @@ const Index = () => {
   const { session } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [locationName, setLocationName] = useState("Detect Location");
   const [detectingLocation, setDetectingLocation] = useState(false);
 
@@ -98,19 +94,19 @@ const Index = () => {
     );
   };
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return;
-    const match = services.find(
-      (s) =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    if (match) {
-      handleServiceClick(match.id);
-    } else {
-      handleServiceClick(); // go to dashboard/auth
-    }
-  };
+  // Sequential character matching: search filters services whose name starts with typed letters in sequence
+  const filteredServices = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return services.filter((s) => {
+      const name = s.name.toLowerCase();
+      // Check if name starts with the query (prefix match)
+      if (name.startsWith(q)) return true;
+      // Also check word-start matching (e.g. "ac" matches "AC Repair")
+      const words = name.split(/\s+/);
+      return words.some(w => w.startsWith(q));
+    });
+  }, [searchQuery, services]);
 
   const handleServiceClick = (serviceId?: string) => {
     if (session) {
@@ -120,66 +116,40 @@ const Index = () => {
     }
   };
 
-  // Top 6 for the hero grid, rest for horizontal row
-  const topServices = services.slice(0, 3);
-  const bottomServices = services.slice(3, 7);
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar — UC style: clean white, location, search */}
-      <header className="sticky top-0 z-50 bg-card border-b">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-16">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg sh-gradient-blue text-white text-[10px] font-black">SH</div>
-              <span className="text-base font-extrabold tracking-tight text-foreground hidden sm:block">SmartHelper</span>
+      {/* Navbar */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 h-16">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl sh-gradient-blue text-white text-[10px] font-black tracking-wider">SH</div>
+              <span className="text-lg font-extrabold tracking-tight text-foreground hidden sm:block">SmartHelper</span>
             </div>
-            {/* Location pill */}
             <button
               onClick={detectLocation}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors text-sm"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border hover:bg-muted transition-colors text-sm"
             >
               <MapPin className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium text-foreground truncate max-w-[160px]">
+              <span className="font-medium text-foreground truncate max-w-[140px]">
                 {detectingLocation ? "Detecting…" : locationName}
               </span>
               <ChevronRight className="h-3 w-3 text-muted-foreground rotate-90" />
             </button>
           </div>
 
-          {/* Search bar in header */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search for 'Kitchen cleaning'"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSearch()}
-                className="h-10 pl-10 pr-20 rounded-lg border bg-muted/50 text-sm"
-              />
-              <Button
-                size="sm"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 rounded-md text-xs font-semibold sh-gradient-blue border-0 text-white"
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-            </div>
-          </div>
-
           <div className="flex items-center gap-2">
             <ThemeToggle variant="white" />
             {session ? (
-              <Button className="rounded-lg text-sm font-semibold sh-gradient-blue border-0 text-white" onClick={() => navigate("/dashboard")}>
+              <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/dashboard")}>
                 Dashboard
               </Button>
             ) : (
               <>
-                <Button variant="ghost" className="text-sm font-medium" onClick={() => navigate("/auth")}>
+                <Button variant="ghost" className="text-sm font-semibold rounded-full hidden sm:flex" onClick={() => navigate("/auth")}>
                   Sign In
                 </Button>
-                <Button className="rounded-lg text-sm font-semibold sh-gradient-blue border-0 text-white" onClick={() => navigate("/auth")}>
+                <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/auth")}>
                   Get Started
                 </Button>
               </>
@@ -188,224 +158,242 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero — UC split layout */}
-      <section className="py-10 md:py-16">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid lg:grid-cols-2 gap-10 items-start">
-            {/* Left: headline + service grid */}
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-20">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Left */}
             <div>
               <motion.h1
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-3xl md:text-[42px] font-black text-foreground leading-tight tracking-tight"
+                className="text-4xl sm:text-5xl md:text-[56px] font-black text-foreground leading-[1.1] tracking-tight"
               >
-                Home services at your doorstep
+                Home services,{" "}
+                <span className="text-primary">delivered.</span>
               </motion.h1>
-
-              {/* Service category card */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
+              <motion.p
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="mt-8 p-6 rounded-2xl bg-card border sh-shadow"
+                transition={{ delay: 0.1 }}
+                className="mt-4 text-lg text-muted-foreground max-w-md leading-relaxed"
               >
-                <p className="text-sm font-semibold text-muted-foreground mb-5">What are you looking for?</p>
+                Book trusted professionals for any home service. Auto-matched. GPS-tracked. Done.
+              </motion.p>
 
-                {/* Top row — icon cards */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  {topServices.map((svc) => {
-                    const IconComp = iconMap[svc.icon || ""] || Sparkles;
-                    return (
-                      <button
-                        key={svc.id}
-                        onClick={() => handleServiceClick(svc.id)}
-                        className="flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-muted transition-colors group cursor-pointer"
-                      >
-                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                          <IconComp className="h-7 w-7" />
-                        </div>
-                        <span className="text-xs font-semibold text-foreground text-center leading-tight">{svc.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Bottom rows — horizontal list cards */}
-                <div className="space-y-2">
-                  {bottomServices.map((svc) => {
-                    const IconComp = iconMap[svc.icon || ""] || Sparkles;
-                    return (
-                      <button
-                        key={svc.id}
-                        onClick={() => handleServiceClick(svc.id)}
-                        className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors group cursor-pointer"
-                      >
-                        <div className="flex-1 text-left">
-                          <span className="text-sm font-semibold text-foreground">{svc.name}</span>
-                          {svc.price_range && (
-                            <span className="text-xs text-muted-foreground ml-2">{svc.price_range}</span>
-                          )}
-                        </div>
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                          <IconComp className="h-5 w-5" />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* View all */}
-                <button
-                  onClick={() => handleServiceClick()}
-                  className="w-full mt-4 text-sm font-semibold text-primary flex items-center justify-center gap-1 hover:underline"
-                >
-                  View all services <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </motion.div>
-
-              {/* Stats bar — like UC */}
+              {/* Search bar with live results */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-center gap-8 mt-8"
+                transition={{ delay: 0.2 }}
+                className="mt-8 relative max-w-lg"
               >
-                <div className="flex items-center gap-3">
-                  <Star className="h-6 w-6 text-foreground" />
-                  <div>
-                    <p className="text-xl font-black text-foreground">4.8</p>
-                    <p className="text-xs text-muted-foreground">Service Rating*</p>
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                <Input
+                  placeholder="Search services… e.g. 'plumber', 'cleaning'"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                  className="h-14 pl-12 pr-12 rounded-2xl border-2 border-border bg-card text-base sh-shadow-md focus-visible:ring-primary focus-visible:border-primary"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+
+                {/* Live search dropdown */}
+                <AnimatePresence>
+                  {searchQuery.trim() && searchFocused && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute top-full mt-2 left-0 right-0 bg-card border rounded-2xl sh-shadow-lg overflow-hidden z-50"
+                    >
+                      {filteredServices.length > 0 ? (
+                        filteredServices.map((svc) => {
+                          const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                          return (
+                            <button
+                              key={svc.id}
+                              onMouseDown={() => handleServiceClick(svc.id)}
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left"
+                            >
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${colorMap[svc.icon || ""] || "bg-muted text-foreground"}`}>
+                                <IconComp className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-foreground">{svc.name}</p>
+                                <p className="text-xs text-muted-foreground">{svc.price_range}</p>
+                              </div>
+                              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="px-4 py-6 text-center">
+                          <p className="text-sm text-muted-foreground">No services matching "<span className="font-semibold text-foreground">{searchQuery}</span>"</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Stats */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="flex items-center gap-8 mt-10"
+              >
+                {[
+                  { icon: Star, value: "4.8", label: "Service Rating" },
+                  { icon: Users, value: "12M+", label: "Happy Customers" },
+                  { icon: Clock, value: "~15 min", label: "Avg. Response" },
+                ].map((stat) => (
+                  <div key={stat.label} className="flex items-center gap-2.5">
+                    <stat.icon className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-lg font-black text-foreground leading-none">{stat.value}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Users className="h-6 w-6 text-foreground" />
-                  <div>
-                    <p className="text-xl font-black text-foreground">12M+</p>
-                    <p className="text-xs text-muted-foreground">Customers Globally*</p>
-                  </div>
-                </div>
+                ))}
               </motion.div>
             </div>
 
-            {/* Right: Image collage — UC style 2x2 grid */}
+            {/* Right: Image collage */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="hidden lg:grid grid-cols-2 gap-3 h-[520px]"
+              className="hidden lg:grid grid-cols-2 gap-3 h-[480px]"
             >
-              <div className="rounded-2xl overflow-hidden">
-                <img src={ucSalon} alt="Salon services" className="w-full h-full object-cover" />
+              <div className="space-y-3">
+                <div className="rounded-3xl overflow-hidden h-[55%]">
+                  <img src={ucSalon} alt="Salon services" className="w-full h-full object-cover" />
+                </div>
+                <div className="rounded-3xl overflow-hidden h-[calc(45%-12px)]">
+                  <img src={ucCleaning} alt="Cleaning services" className="w-full h-full object-cover" />
+                </div>
               </div>
-              <div className="rounded-2xl overflow-hidden">
-                <img src={ucPlumber} alt="Plumbing services" className="w-full h-full object-cover" />
-              </div>
-              <div className="rounded-2xl overflow-hidden">
-                <img src={ucCleaning} alt="Cleaning services" className="w-full h-full object-cover" />
-              </div>
-              <div className="rounded-2xl overflow-hidden">
-                <img src={ucAcRepair} alt="AC repair services" className="w-full h-full object-cover" />
+              <div className="space-y-3 pt-8">
+                <div className="rounded-3xl overflow-hidden h-[calc(45%-12px)]">
+                  <img src={ucPlumber} alt="Plumbing services" className="w-full h-full object-cover" />
+                </div>
+                <div className="rounded-3xl overflow-hidden h-[55%]">
+                  <img src={ucAcRepair} alt="AC repair services" className="w-full h-full object-cover" />
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Promo cards — horizontal scroll like UC */}
-      <section className="pb-12">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid sm:grid-cols-3 gap-4">
-            {promoCards.map((card, i) => (
-              <motion.button
-                key={card.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                onClick={() => handleServiceClick()}
-                className="relative h-48 rounded-2xl overflow-hidden group cursor-pointer"
-              >
-                <img src={card.image} alt={card.subtitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className={`absolute inset-0 bg-gradient-to-t ${card.color} to-transparent`} />
-                <div className="absolute bottom-0 left-0 p-5">
-                  <p className="text-lg font-black text-white">{card.title}</p>
-                  <p className="text-xs text-white/80 mt-0.5">{card.subtitle}</p>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* All services grid */}
+      {/* Services Grid — bold, clean */}
       {services.length > 0 && (
-        <section className="py-12 bg-muted/50">
-          <div className="mx-auto max-w-7xl px-6">
-            <h2 className="text-xl font-black text-foreground mb-6">All Services</h2>
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-              {services.map((svc, i) => {
+        <section className="py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Our Services</h2>
+                <p className="text-sm text-muted-foreground mt-1">Professional help for every need</p>
+              </div>
+              <button
+                onClick={() => handleServiceClick()}
+                className="text-sm font-bold text-primary flex items-center gap-1 hover:underline"
+              >
+                View all <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <motion.div
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
+              className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3"
+            >
+              {services.map((svc) => {
                 const IconComp = iconMap[svc.icon || ""] || Sparkles;
                 return (
                   <motion.button
                     key={svc.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.03 }}
+                    variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
                     whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.97 }}
                     className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow group cursor-pointer"
                     onClick={() => handleServiceClick(svc.id)}
                   >
                     <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                      <IconComp className="h-6 w-6" />
+                      <IconComp className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold text-foreground text-center leading-tight">{svc.name}</span>
+                    <span className="text-[11px] font-bold text-foreground text-center leading-tight">{svc.name}</span>
                   </motion.button>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
 
       {/* How it works */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">How SmartHelper works</h2>
-            <p className="text-muted-foreground mt-2 text-sm">Get professional help in 3 simple steps</p>
-          </motion.div>
+      <section className="py-14 md:py-20 bg-muted/40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">How it works</h2>
+            <p className="text-sm text-muted-foreground mt-2">3 simple steps to get help</p>
+          </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { step: "01", icon: Search, title: "Select & Locate", desc: "Choose your service and share your location via GPS. We'll find helpers near you." },
-              { step: "02", icon: Zap, title: "Smart Auto-Assign", desc: "Our AI system instantly matches you with the nearest, best-rated, available professional." },
-              { step: "03", icon: CheckCircle2, title: "Track & Complete", desc: "Track your helper live on the map. Rate them after service completion." },
+              { step: "1", icon: Search, title: "Choose a Service", desc: "Pick what you need and share your GPS location." },
+              { step: "2", icon: Zap, title: "AI Auto-Match", desc: "We instantly assign the nearest, top-rated helper." },
+              { step: "3", icon: CheckCircle2, title: "Track & Pay", desc: "Track live on map. Rate after completion." },
             ].map((item, i) => (
-              <motion.div key={item.step} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="relative p-7 rounded-3xl bg-card border sh-shadow">
-                <span className="text-5xl font-black text-muted/60 absolute top-4 right-5">{item.step}</span>
-                <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <item.icon className="h-5 w-5 text-primary" />
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="relative p-8 rounded-3xl bg-card border sh-shadow text-center"
+              >
+                <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                  <item.icon className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-base font-bold text-foreground mb-1.5">{item.title}</h3>
+                <h3 className="text-base font-bold text-foreground mb-2">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                <span className="absolute top-5 right-6 text-4xl font-black text-muted-foreground/10">{item.step}</span>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Customer Reviews */}
-      <section className="py-12 md:py-20 bg-muted/50">
-        <div className="mx-auto max-w-7xl px-6">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">What customers say</h2>
-            <p className="text-muted-foreground mt-2 text-sm">Real reviews from verified customers</p>
-          </motion.div>
+      {/* Reviews */}
+      <section className="py-14 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Loved by customers</h2>
+            <p className="text-sm text-muted-foreground mt-2">Real reviews from verified users</p>
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {reviews.map((review, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="p-5 rounded-2xl bg-card border sh-shadow">
-                <div className="flex items-center gap-1 mb-3">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="p-5 rounded-2xl bg-card border sh-shadow"
+              >
+                <div className="flex items-center gap-0.5 mb-3">
                   {Array.from({ length: review.rating }).map((_, j) => (
                     <Star key={j} className="h-3.5 w-3.5 fill-[hsl(var(--sh-orange))] text-[hsl(var(--sh-orange))]" />
                   ))}
@@ -422,15 +410,22 @@ const Index = () => {
       </section>
 
       {/* Trust */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid md:grid-cols-3 gap-6">
+      <section className="py-14 md:py-20 bg-muted/40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Shield, title: "Verified Professionals", desc: "Every helper is background-checked and skill-verified before onboarding." },
-              { icon: Star, title: "Rated & Reviewed", desc: "Transparent ratings help you trust the helper assigned to you." },
-              { icon: Headphones, title: "24/7 Support", desc: "Our support team is always available for any issues during service." },
+              { icon: Shield, title: "Verified Pros", desc: "Every helper is background-checked and skill-verified." },
+              { icon: Star, title: "Rated & Reviewed", desc: "Transparent ratings so you always know who's coming." },
+              { icon: Headphones, title: "24/7 Support", desc: "Round-the-clock help for any issue during service." },
             ].map((item, i) => (
-              <motion.div key={item.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex items-start gap-4">
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-4"
+              >
                 <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <item.icon className="h-6 w-6 text-primary" />
                 </div>
@@ -446,10 +441,15 @@ const Index = () => {
 
       {/* CTA */}
       <section className="py-16">
-        <div className="mx-auto max-w-7xl px-6">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="sh-gradient-blue rounded-3xl p-10 md:p-16 text-center text-white sh-shadow-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="sh-gradient-blue rounded-3xl p-10 md:p-16 text-center text-white sh-shadow-lg"
+          >
             <h2 className="text-3xl md:text-4xl font-black tracking-tight">Ready to get started?</h2>
-            <p className="mt-3 text-white/70 text-base max-w-md mx-auto">Join thousands of happy customers who get reliable help at their doorstep.</p>
+            <p className="mt-3 text-white/70 text-base max-w-md mx-auto">Join thousands getting reliable help at their doorstep.</p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Button size="lg" className="h-14 px-8 rounded-2xl text-base font-bold bg-white text-primary hover:bg-white/90" onClick={() => navigate("/auth")}>
                 Book a Service
@@ -463,15 +463,18 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-10">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg sh-gradient-blue text-white text-[10px] font-black">SH</div>
             <span className="text-sm font-bold text-foreground">SmartHelper</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2026 SmartHelper Auto-Assignment System. Built for SIH.</p>
+          <p className="text-xs text-muted-foreground">© 2026 SmartHelper. Built for SIH.</p>
         </div>
       </footer>
+
+      {/* Chatbot */}
+      <ChatbotWidget />
     </div>
   );
 };
