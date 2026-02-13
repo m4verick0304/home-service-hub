@@ -37,14 +37,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row relative">
-      {/* 3D Lanyard - full page overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-auto">
-        <Suspense fallback={null}>
-          <Lanyard position={[0, 0, 24]} gravity={[0, -40, 0]} />
-        </Suspense>
-      </div>
-
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left - Branding */}
       <div className="relative lg:w-1/2 h-[260px] lg:h-auto overflow-hidden sh-gradient-blue">
         <div className="absolute inset-0 opacity-10">
@@ -52,7 +45,12 @@ const Auth = () => {
           <div className="absolute bottom-10 right-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
         </div>
 
-        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12 pointer-events-none" style={{ zIndex: 11 }}>
+        {/* 3D Lanyard */}
+        <Suspense fallback={null}>
+          <Lanyard position={[0, 0, 24]} gravity={[0, -40, 0]} />
+        </Suspense>
+
+        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12 pointer-events-none" style={{ zIndex: 1 }}>
           <div className="flex items-center gap-2 pointer-events-auto">
             <button onClick={() => navigate("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 text-white text-[10px] font-bold tracking-tight">HS</div>
@@ -85,8 +83,8 @@ const Auth = () => {
       </div>
 
       {/* Right - Form */}
-      <div className="relative flex-1 flex items-center justify-center px-6 py-12 lg:py-0 bg-background" style={{ zIndex: 11, pointerEvents: 'none' }}>
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-sm" style={{ pointerEvents: 'auto' }}>
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:py-0 bg-background">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-sm">
           <div className="mb-8">
             <h2 className="text-2xl font-black text-foreground tracking-tight">
               {isSignUp ? "Create account" : "Welcome back"}
