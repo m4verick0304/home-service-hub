@@ -15,6 +15,7 @@ import {
   ShoppingCart, History, Globe
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
 import { useCart } from "@/contexts/CartContext";
 import ucSalon from "@/assets/uc-salon.jpg";
@@ -58,7 +59,7 @@ const reviews = [
 
 const Index = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const { totalItems } = useCart();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -207,9 +208,18 @@ const Index = () => {
 
             <ThemeToggle variant="white" />
             {session ? (
-              <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/dashboard")}>
-                Dashboard
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/dashboard")}>
+                  Dashboard
+                </Button>
+                <button onClick={() => navigate("/profile")} className="hover:opacity-80 transition-opacity">
+                  <Avatar className="h-9 w-9 border-2 border-border">
+                    <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                      {profile?.name ? profile.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : session.user.email?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </div>
             ) : (
               <>
                 <Button variant="ghost" className="text-sm font-semibold rounded-full hidden sm:flex" onClick={() => navigate("/auth")}>
