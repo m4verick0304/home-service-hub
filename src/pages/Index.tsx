@@ -373,11 +373,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Services Grid — bold, clean */}
+      {/* Services Belt — infinite scrolling marquee */}
       {services.length > 0 && (
-        <section className="py-14 md:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between mb-8">
+        <section className="py-14 md:py-20 overflow-hidden">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-8">
+            <div className="flex items-end justify-between">
               <div>
                 <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Our Services</h2>
                 <p className="text-sm text-muted-foreground mt-1">Professional help for every need</p>
@@ -389,32 +389,33 @@ const Index = () => {
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
-            <motion.div
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
-              className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3"
-            >
-              {services.map((svc) => {
+          </div>
+          <div className="relative group">
+            {/* Fade edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+            <div className="flex animate-marquee group-hover:[animation-play-state:paused] w-max gap-4 py-2">
+              {[...services, ...services, ...services].map((svc, i) => {
                 const IconComp = iconMap[svc.icon || ""] || Sparkles;
                 return (
                   <motion.button
-                    key={svc.id}
-                    variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
-                    whileHover={{ y: -4 }}
+                    key={`${svc.id}-${i}`}
+                    whileHover={{ y: -6, scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
-                    className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow group cursor-pointer"
+                    className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow cursor-pointer min-w-[120px]"
                     onClick={() => handleServiceClick(svc.id)}
                   >
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                      <IconComp className="h-5 w-5" />
+                    <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} transition-transform`}>
+                      <IconComp className="h-6 w-6" />
                     </div>
-                    <span className="text-[11px] font-bold text-foreground text-center leading-tight">{svc.name}</span>
+                    <span className="text-xs font-bold text-foreground text-center leading-tight whitespace-nowrap">{svc.name}</span>
+                    {svc.price_range && (
+                      <span className="text-[10px] text-muted-foreground font-medium">{svc.price_range}</span>
+                    )}
                   </motion.button>
                 );
               })}
-            </motion.div>
+            </div>
           </div>
         </section>
       )}
