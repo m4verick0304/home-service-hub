@@ -13,6 +13,7 @@ import {
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets,
   User, GlassWater, Truck, Camera, ChevronRight
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import ucSalon from "@/assets/uc-salon.jpg";
 import ucCleaning from "@/assets/uc-cleaning.jpg";
 import ucAcRepair from "@/assets/uc-ac-repair.jpg";
@@ -114,6 +115,7 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle variant="white" />
             {session ? (
               <Button className="rounded-lg text-sm font-semibold sh-gradient-blue border-0 text-white" onClick={() => navigate("/dashboard")}>
                 Dashboard
