@@ -40,7 +40,7 @@ export function AppHeader({ title, showBack = false, backTo, rightContent, varia
             </Button>
           )}
           {!showBack && (
-            <div className="flex items-center gap-2.5">
+            <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg sh-gradient-blue text-white text-xs font-black sh-shadow">
                 SH
               </div>
@@ -50,7 +50,7 @@ export function AppHeader({ title, showBack = false, backTo, rightContent, varia
               )}>
                 SmartHelper
               </span>
-            </div>
+            </button>
           )}
           {title && (
             <h1 className={cn(
