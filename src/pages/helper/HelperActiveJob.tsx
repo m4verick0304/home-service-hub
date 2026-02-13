@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/shared/AppHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { MapPlaceholder } from "@/components/shared/MapPlaceholder";
+import { LeafletMap } from "@/components/shared/LeafletMap";
 import { motion } from "framer-motion";
 import { Phone, MapPin, MessageSquare, CheckCircle2, Navigation, Zap } from "lucide-react";
 
@@ -56,7 +56,7 @@ const HelperActiveJob = () => {
         </div>
 
         {/* Map */}
-        <MapPlaceholder className="h-[240px]" showHelper helperLabel="You" userLabel="Client" />
+        <LeafletMap className="h-[240px]" showHelper helperLabel="You" userLabel="Client" />
 
         {/* Job Info */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-card border sh-shadow space-y-4">
