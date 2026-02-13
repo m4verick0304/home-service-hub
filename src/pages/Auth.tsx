@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Zap, Shield, Star, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Lanyard from "@/components/Lanyard";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -43,8 +44,14 @@ const Auth = () => {
           <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
           <div className="absolute bottom-10 right-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
         </div>
-        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12">
-          <div className="flex items-center gap-2.5">
+
+        {/* 3D Lanyard */}
+        <Suspense fallback={null}>
+          <Lanyard position={[0, 0, 24]} gravity={[0, -40, 0]} />
+        </Suspense>
+
+        <div className="relative flex flex-col justify-between h-full p-8 lg:p-12 pointer-events-none" style={{ zIndex: 1 }}>
+          <div className="flex items-center gap-2.5 pointer-events-auto">
             <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white text-xs font-black">SH</div>
               <span className="text-white text-lg font-bold">SmartHelper</span>
