@@ -43,17 +43,39 @@ const Auth = () => {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if (!otpSent) {
-      const { error } = await supabase.auth.signInWithOtp({ phone });
-      if (error) toast({ title: "Failed to send OTP", description: error.message, variant: "destructive" });
-      else {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!otpSent) {
+        const res = await fetch(`${supabaseUrl}/functions/v1/twilio-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "send", phone }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send OTP");
         setOtpSent(true);
         toast({ title: "OTP sent!", description: "Check your phone for the verification code." });
+      } else {
+        const res = await fetch(`${supabaseUrl}/functions/v1/twilio-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "verify", phone, code: otp }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Verification failed");
+        // Set the session from the response
+        if (data.session?.access_token && data.session?.refresh_token) {
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+          navigate("/dashboard");
+        } else {
+          throw new Error("No session returned");
+        }
       }
-    } else {
-      const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-      if (error) toast({ title: "Verification failed", description: error.message, variant: "destructive" });
-      else navigate("/dashboard");
+    } catch (err: any) {
+      toast({ title: otpSent ? "Verification failed" : "Failed to send OTP", description: err.message, variant: "destructive" });
     }
     setLoading(false);
   };
