@@ -58,8 +58,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
-          <BookingNotificationProvider />
-          <Routes>
+            <BookingNotificationProvider />
+            <Routes>
             {/* Public */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
