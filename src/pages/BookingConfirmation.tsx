@@ -4,7 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, Clock, Phone, User, MapPin, Hash } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Phone, User, MapPin, Hash, AlertCircle, CircleDot } from "lucide-react";
+
+const statusConfig: Record<string, { icon: React.ReactNode; label: string; color: string; bgColor: string }> = {
+  confirmed: { icon: <CheckCircle2 className="h-12 w-12 text-green-600" />, label: "Confirmed", color: "text-green-700", bgColor: "bg-green-100" },
+  ongoing: { icon: <CircleDot className="h-12 w-12 text-yellow-600 animate-pulse" />, label: "Ongoing", color: "text-yellow-700", bgColor: "bg-yellow-100" },
+  completed: { icon: <CheckCircle2 className="h-12 w-12 text-primary" />, label: "Completed", color: "text-primary", bgColor: "bg-accent" },
+  cancelled: { icon: <AlertCircle className="h-12 w-12 text-destructive" />, label: "Cancelled", color: "text-destructive", bgColor: "bg-red-100" },
+};
 
 const BookingConfirmation = () => {
   const { bookingId } = useParams();
@@ -13,14 +20,29 @@ const BookingConfirmation = () => {
   const [service, setService] = useState<any>(null);
 
   useEffect(() => {
-    if (bookingId) {
-      supabase.from("bookings").select("*, services(*)").eq("id", bookingId).maybeSingle().then(({ data }) => {
-        if (data) {
-          setBooking(data);
-          setService(data.services);
+    if (!bookingId) return;
+
+    // Initial fetch
+    supabase.from("bookings").select("*, services(*)").eq("id", bookingId).maybeSingle().then(({ data }) => {
+      if (data) {
+        setBooking(data);
+        setService(data.services);
+      }
+    });
+
+    // Realtime subscription
+    const channel = supabase
+      .channel(`booking-${bookingId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "bookings", filter: `id=eq.${bookingId}` },
+        (payload) => {
+          setBooking((prev: any) => (prev ? { ...prev, ...payload.new } : prev));
         }
-      });
-    }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [bookingId]);
 
   if (!booking) {
@@ -31,17 +53,30 @@ const BookingConfirmation = () => {
     );
   }
 
+  const status = statusConfig[booking.status] || statusConfig.confirmed;
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6 text-center">
-        {/* Success Icon */}
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-          <CheckCircle2 className="h-12 w-12 text-green-600" />
+        {/* Status Icon */}
+        <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full ${status.bgColor}`}>
+          {status.icon}
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Booking Confirmed!</h1>
-          <p className="text-muted-foreground mt-1">Your service provider is on the way</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {booking.status === "confirmed" ? "Booking Confirmed!" : `Booking ${status.label}`}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {booking.status === "confirmed" && "Your service provider is on the way"}
+            {booking.status === "ongoing" && "Service is in progress"}
+            {booking.status === "completed" && "Service has been completed"}
+            {booking.status === "cancelled" && "This booking was cancelled"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 flex items-center justify-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            Live updates enabled
+          </p>
         </div>
 
         {/* Booking Details */}
@@ -49,8 +84,8 @@ const BookingConfirmation = () => {
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
-              <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">
-                Confirmed
+              <Badge className={`${status.bgColor} ${status.color} hover:${status.bgColor} border-0`}>
+                {status.label}
               </Badge>
             </div>
 

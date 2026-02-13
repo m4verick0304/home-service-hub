@@ -22,17 +22,43 @@ const BookingHistory = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile) {
-      supabase
-        .from("bookings")
-        .select("*, services(*)")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => {
-          setBookings(data || []);
-          setLoading(false);
-        });
-    }
+    if (!profile) return;
+
+    // Initial fetch
+    supabase
+      .from("bookings")
+      .select("*, services(*)")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setBookings(data || []);
+        setLoading(false);
+      });
+
+    // Realtime subscription
+    const channel = supabase
+      .channel("bookings-history")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            // Refetch to get joined service data
+            supabase.from("bookings").select("*, services(*)").eq("id", (payload.new as any).id).maybeSingle().then(({ data }) => {
+              if (data) setBookings((prev) => [data, ...prev]);
+            });
+          } else if (payload.eventType === "UPDATE") {
+            setBookings((prev) =>
+              prev.map((b) => (b.id === (payload.new as any).id ? { ...b, ...payload.new } : b))
+            );
+          } else if (payload.eventType === "DELETE") {
+            setBookings((prev) => prev.filter((b) => b.id !== (payload.old as any).id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [profile]);
 
   return (
