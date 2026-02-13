@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +15,7 @@ import {
   Calendar, Clock, MapPin, Loader2, Search,
   Sparkles, Wrench, Zap, ChefHat, Paintbrush, Hammer, Check, Shield,
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets, User, GlassWater, Truck, Camera,
-  LocateFixed
+  LocateFixed, ShoppingCart
 } from "lucide-react";
 
 type Service = Tables<"services">;
@@ -44,6 +45,7 @@ const BookService = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { addToCart } = useCart();
   const [service, setService] = useState<Service | null>(null);
   const [address, setAddress] = useState(profile?.address || "");
   const [scheduling, setScheduling] = useState<"now" | "later">("now");
@@ -236,10 +238,25 @@ const BookService = () => {
           <p className="text-xs text-[hsl(var(--sh-green))] font-medium">All helpers are verified and background-checked</p>
         </div>
 
-        {/* Book Button */}
-        <Button className="w-full h-14 text-base font-bold rounded-2xl sh-gradient-blue border-0 text-white sh-shadow-md hover:opacity-90 transition-opacity" onClick={handleBook}>
-          Book Now — Find Nearest Helper
-        </Button>
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1 h-14 text-base font-bold rounded-2xl"
+            onClick={() => {
+              if (service) {
+                addToCart(service);
+                toast({ title: "Added to cart!", description: `${service.name} has been added.` });
+              }
+            }}
+          >
+            <ShoppingCart className="h-5 w-5 mr-2" />
+            Add to Cart
+          </Button>
+          <Button className="flex-1 h-14 text-base font-bold rounded-2xl sh-gradient-blue border-0 text-white sh-shadow-md hover:opacity-90 transition-opacity" onClick={handleBook}>
+            Book Now
+          </Button>
+        </div>
       </motion.main>
     </div>
   );

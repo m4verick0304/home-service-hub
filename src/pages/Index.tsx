@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
+import { useCart } from "@/contexts/CartContext";
 import ucSalon from "@/assets/uc-salon.jpg";
 import ucCleaning from "@/assets/uc-cleaning.jpg";
 import ucAcRepair from "@/assets/uc-ac-repair.jpg";
@@ -58,6 +59,7 @@ const reviews = [
 const Index = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { totalItems } = useCart();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -180,11 +182,16 @@ const Index = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9"
-              onClick={() => session ? navigate("/history") : navigate("/auth")}
+              className="rounded-full h-9 w-9 relative"
+              onClick={() => session ? navigate("/cart") : navigate("/auth")}
               title="Cart"
             >
               <ShoppingCart className="h-4 w-4 text-foreground" />
+              {totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
 
             {/* History */}
