@@ -46,7 +46,14 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (session) return <Navigate to="/dashboard" replace />;
+  if (session) {
+    const redirect = localStorage.getItem("auth_redirect");
+    if (redirect) {
+      localStorage.removeItem("auth_redirect");
+      return <Navigate to={redirect} replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 };
 

@@ -224,6 +224,7 @@ const HelperLogin = () => {
               variant="outline"
               className="w-full h-12 rounded-xl text-sm font-medium"
               onClick={async () => {
+                localStorage.setItem("auth_redirect", "/helper/dashboard");
                 const { error } = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: window.location.origin,
                 });
@@ -239,6 +240,7 @@ const HelperLogin = () => {
               variant="outline"
               className="w-full h-12 rounded-xl text-sm font-medium"
               onClick={async () => {
+                localStorage.setItem("auth_redirect", "/helper/dashboard");
                 const { error } = await lovable.auth.signInWithOAuth("apple", {
                   redirect_uri: window.location.origin,
                 });
