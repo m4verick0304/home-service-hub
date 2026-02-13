@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AppHeader } from "@/components/shared/AppHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { LeafletMap } from "@/components/shared/LeafletMap";
 import { motion } from "framer-motion";
-import { Phone, MapPin, MessageSquare, CheckCircle2, Navigation, Zap } from "lucide-react";
+import { Phone, MapPin, Navigation, CheckCircle2, Zap, ChevronLeft, MessageSquare } from "lucide-react";
 
 type JobStatus = "on_the_way" | "working" | "completed";
 
@@ -30,87 +29,100 @@ const HelperActiveJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader title="Active Job" showBack backTo="/helper/dashboard" variant="white" />
+    <div className="min-h-screen bg-muted/50">
+      {/* UC-style header */}
+      <div className="sticky top-0 z-40 bg-card border-b">
+        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate("/helper/dashboard")} className="p-1 -ml-1">
+              <ChevronLeft className="h-5 w-5 text-foreground" />
+            </button>
+            <h1 className="text-base font-bold text-foreground">Active Job</h1>
+          </div>
+          <StatusBadge status={status} pulse={status !== "completed"} />
+        </div>
+      </div>
 
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 py-6 space-y-6">
-        {/* Progress Steps */}
-        <div className="flex items-center justify-between px-2">
+      <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+        {/* Progress Steps - UC minimal */}
+        <div className="flex items-center justify-between bg-card rounded-xl border p-3">
           {statusSteps.map((step, i) => (
-            <div key={step.key} className="flex items-center gap-2">
-              <div className={`flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold transition-colors ${
+            <div key={step.key} className="flex items-center gap-1.5">
+              <div className={`flex items-center justify-center h-7 w-7 rounded-full text-[10px] font-bold transition-colors ${
                 i <= currentIdx
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-foreground text-background"
                   : "bg-muted text-muted-foreground"
               }`}>
-                {i < currentIdx ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                {i < currentIdx ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${
+              <span className={`text-[11px] font-semibold hidden sm:block ${
                 i <= currentIdx ? "text-foreground" : "text-muted-foreground"
               }`}>{step.label}</span>
               {i < statusSteps.length - 1 && (
-                <div className={`h-[2px] w-8 sm:w-16 ${i < currentIdx ? "bg-primary" : "bg-border"}`} />
+                <div className={`h-[1.5px] w-6 sm:w-10 mx-1 ${i < currentIdx ? "bg-foreground" : "bg-border"}`} />
               )}
             </div>
           ))}
         </div>
 
         {/* Map */}
-        <LeafletMap className="h-[240px]" showHelper helperLabel="You" userLabel="Client" />
+        <LeafletMap className="h-[200px] rounded-xl overflow-hidden border" showHelper helperLabel="You" userLabel="Client" />
 
-        {/* Job Info */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-card border sh-shadow space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-[hsl(var(--sh-orange-light))] flex items-center justify-center">
-                <Zap className="h-6 w-6 text-[hsl(var(--sh-orange))]" />
+        {/* Job Info - UC card style */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl bg-card border sh-shadow overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-lg bg-[hsl(var(--sh-orange))]/10 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-[hsl(var(--sh-orange))]" />
               </div>
               <div>
-                <h3 className="font-bold text-foreground">Electrical Repair</h3>
-                <p className="text-xs text-muted-foreground">Residential • Wiring</p>
+                <h3 className="font-bold text-foreground text-sm">Electrical Repair</h3>
+                <p className="text-[11px] text-muted-foreground">Residential • Wiring</p>
               </div>
             </div>
-            <StatusBadge status={status} pulse={status !== "completed"} />
+
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/70">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                <div>
+                  <p className="text-[9px] text-muted-foreground font-semibold uppercase">Client Address</p>
+                  <p className="text-xs font-semibold text-foreground">123 MG Road, Sector 45, Gurugram</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/70">
+                <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                <div>
+                  <p className="text-[9px] text-muted-foreground font-semibold uppercase">Client Phone</p>
+                  <p className="text-xs font-semibold text-foreground">+91 98765 43210</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-3 pt-3 border-t">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <div>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase">Client Address</p>
-                <p className="text-sm font-semibold text-foreground">123 MG Road, Sector 45, Gurugram</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <div>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase">Client Phone</p>
-                <p className="text-sm font-semibold text-foreground">+91 98765 43210</p>
-              </div>
-            </div>
+          {/* Quick actions row */}
+          <div className="flex border-t divide-x">
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-primary hover:bg-muted/50 transition-colors">
+              <Phone className="h-3.5 w-3.5" /> Call
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-primary hover:bg-muted/50 transition-colors">
+              <MessageSquare className="h-3.5 w-3.5" /> Message
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-primary hover:bg-muted/50 transition-colors">
+              <Navigation className="h-3.5 w-3.5" /> Navigate
+            </button>
           </div>
         </motion.div>
 
-        {/* Contact Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-12 rounded-xl font-semibold">
-            <Phone className="h-4 w-4 mr-2" /> Call Client
-          </Button>
-          <Button variant="outline" className="h-12 rounded-xl font-semibold">
-            <Navigation className="h-4 w-4 mr-2" /> Navigate
-          </Button>
-        </div>
-
         {/* Status Action Button */}
         <Button
-          className={`w-full h-14 rounded-2xl font-bold text-base border-0 text-white transition-colors ${
+          className={`w-full h-13 rounded-xl font-bold text-sm border-0 text-white transition-colors ${
             status === "on_the_way" ? "bg-[hsl(var(--sh-orange))] hover:bg-[hsl(var(--sh-orange))]/90" :
             status === "working" ? "bg-[hsl(var(--sh-green))] hover:bg-[hsl(var(--sh-green))]/90" :
-            "sh-gradient-blue"
+            "bg-foreground hover:bg-foreground/90"
           }`}
           onClick={advanceStatus}
         >
-          {status === "on_the_way" && "Arrived — Start Working"}
+          {status === "on_the_way" && "I've Arrived — Start Job"}
           {status === "working" && "Mark as Completed"}
           {status === "completed" && "Back to Dashboard"}
         </Button>
