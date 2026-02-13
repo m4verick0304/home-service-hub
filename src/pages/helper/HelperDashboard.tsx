@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { AppHeader } from "@/components/shared/AppHeader";
-import { motion } from "framer-motion";
+import { useRealtimeJobAlerts } from "@/hooks/useRealtimeJobAlerts";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, MapPin, Clock, Briefcase, Bell,
-  ChevronRight, ToggleLeft, ToggleRight, Wrench, Zap
+  ChevronRight, ToggleLeft, ToggleRight, Wrench, Zap, X
 } from "lucide-react";
 
 const mockHelper = {
@@ -28,6 +29,7 @@ const recentJobs = [
 const HelperDashboard = () => {
   const navigate = useNavigate();
   const [isAvailable, setIsAvailable] = useState(true);
+  const { alerts, latestAlert, dismissAlert } = useRealtimeJobAlerts();
 
   const initials = mockHelper.name.split(" ").map(n => n[0]).join("").slice(0, 2);
 
@@ -118,8 +120,42 @@ const HelperDashboard = () => {
           ))}
         </div>
 
-        {/* Incoming Job Alert */}
-        {isAvailable && (
+        {/* Real-time Job Alerts */}
+        <AnimatePresence>
+          {isAvailable && alerts.length > 0 && alerts.map((alert) => (
+            <motion.div
+              key={alert.id}
+              initial={{ opacity: 0, y: -12, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 100 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <button
+                onClick={() => navigate("/helper/job-request")}
+                className="w-full flex items-center gap-4 p-5 rounded-2xl bg-[hsl(var(--sh-orange-light))] border-2 border-[hsl(var(--sh-orange))]/30 hover:border-[hsl(var(--sh-orange))]/50 transition-all group relative"
+              >
+                <div
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-[hsl(var(--sh-orange))]/20 transition-colors z-10"
+                  onClick={(e) => { e.stopPropagation(); dismissAlert(alert.id); }}
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <div className="h-12 w-12 rounded-2xl bg-[hsl(var(--sh-orange))]/20 flex items-center justify-center flex-shrink-0 relative">
+                  <Bell className="h-6 w-6 text-[hsl(var(--sh-orange))]" />
+                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[hsl(var(--sh-orange))] animate-pulse" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-sm text-foreground">🔔 New Job Request!</p>
+                  <p className="text-xs text-muted-foreground">{alert.serviceName} • {alert.address || "Nearby"}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-[hsl(var(--sh-orange))] transition-colors" />
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Static demo alert (shown when no real-time alerts) */}
+        {isAvailable && alerts.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <button
               onClick={() => navigate("/helper/job-request")}
