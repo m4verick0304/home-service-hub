@@ -7,12 +7,13 @@ import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
+const CHAT_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 export function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Hi! 👋 I'm your SmartHelper assistant. How can I help you today?" },
+    { role: "assistant", content: "Hi! 👋 I'm your Urban Square assistant. How can I help you today?" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,17 +34,42 @@ export function ChatbotWidget() {
     setIsLoading(true);
 
     let assistantSoFar = "";
-    const allMsgs = newMessages.filter((m) => m.role === "user" || m.role === "assistant");
+
+    // System prompt
+    const systemPrompt = {
+      role: "system",
+      content: `You are Urban Square AI Assistant — a friendly, concise helper for HomeServiceHub, a home services platform. You help users:
+- Recommend the right service for their problem
+- Explain pricing, ETAs, and how booking works
+- Troubleshoot common home issues
+- Guide users through the booking process
+- Answer questions about available services
+
+Available services: House Cleaning, Plumbing, Electrical, Cooking, Painting, Carpentry, AC Service, Pest Control
+
+Guidelines:
+- Keep responses short (2-3 sentences max)
+- Be warm, helpful, and professional
+- Use emojis sparingly (1-2 max)
+- For service recommendations, briefly explain why they'd need that service
+- If unsure, offer to connect them with a specialist`
+    };
+
+    const apiMessages = [systemPrompt, ...newMessages];
 
     try {
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          messages: allMsgs.map((m) => ({ role: m.role, content: m.content })),
+          model: "llama-3.3-70b-versatile",
+          messages: apiMessages,
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 500,
         }),
       });
 
@@ -51,7 +77,7 @@ export function ChatbotWidget() {
         const errData = await resp.json().catch(() => ({}));
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: errData.error || "Sorry, something went wrong. Please try again." },
+          { role: "assistant", content: errData.error?.message || "Sorry, something went wrong. Please try again." },
         ]);
         setIsLoading(false);
         return;
@@ -98,7 +124,7 @@ export function ChatbotWidget() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Connection error. Please try again." },
+        { role: "assistant", content: "Connection error. Please check your internet." },
       ]);
     }
 
@@ -139,7 +165,7 @@ export function ChatbotWidget() {
                   <Bot className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">SmartHelper AI</p>
+                  <p className="text-sm font-bold">Urban Square AI</p>
                   <p className="text-[10px] text-white/70">Always here to help</p>
                 </div>
               </div>

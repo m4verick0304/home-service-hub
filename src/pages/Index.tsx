@@ -12,11 +12,15 @@ import {
   Users, CheckCircle2, Headphones, Search,
   Snowflake, Bug, Scissors, Settings, SprayCan, Droplets,
   User, GlassWater, Truck, Camera, ChevronRight, X,
-  ShoppingCart, History, Globe } from
-"lucide-react";
+  ShoppingCart, History, Globe
+} from
+  "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
+import { SOSEmergency } from "@/components/SOSEmergency";
+import { OfferZone } from "@/components/OfferZone";
+import { BankOffers } from "@/components/BankOffers";
 import { useCart } from "@/contexts/CartContext";
 import ucSalon from "@/assets/uc-salon.jpg";
 import ucCleaning from "@/assets/uc-cleaning.jpg";
@@ -51,10 +55,10 @@ const colorMap: Record<string, string> = {
 };
 
 const reviews = [
-{ name: "Priya S.", rating: 5, text: "Amazing service! The plumber arrived in 12 minutes and fixed everything perfectly.", service: "Plumber" },
-{ name: "Rahul M.", rating: 5, text: "Best cleaning service I've used. Professional, thorough and on time.", service: "Deep Cleaning" },
-{ name: "Anita K.", rating: 4, text: "Quick AC repair. The technician was knowledgeable and friendly.", service: "AC Repair" },
-{ name: "Vikram P.", rating: 5, text: "Pest control was very effective. No cockroaches since the treatment!", service: "Pest Control" }];
+  { name: "Priya S.", rating: 5, text: "Amazing service! The plumber arrived in 12 minutes and fixed everything perfectly.", service: "Plumber" },
+  { name: "Rahul M.", rating: 5, text: "Best cleaning service I've used. Professional, thorough and on time.", service: "Deep Cleaning" },
+  { name: "Anita K.", rating: 4, text: "Quick AC repair. The technician was knowledgeable and friendly.", service: "AC Repair" },
+  { name: "Vikram P.", rating: 5, text: "Pest control was very effective. No cockroaches since the treatment!", service: "Pest Control" }];
 
 
 const Index = () => {
@@ -70,11 +74,11 @@ const Index = () => {
   const [langOpen, setLangOpen] = useState(false);
 
   const languages = [
-  { code: "EN", label: "English" },
-  { code: "HI", label: "हिन्दी" },
-  { code: "TA", label: "தமிழ்" },
-  { code: "TE", label: "తెలుగు" },
-  { code: "BN", label: "বাংলা" }];
+    { code: "EN", label: "English" },
+    { code: "HI", label: "हिन्दी" },
+    { code: "TA", label: "தமிழ்" },
+    { code: "TE", label: "తెలుగు" },
+    { code: "BN", label: "বাংলা" }];
 
 
   useEffect(() => {
@@ -138,7 +142,7 @@ const Index = () => {
           <div className="flex items-center gap-4 sm:gap-6">
             <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="h-9 w-9 rounded-xl sh-gradient-blue text-white text-[10px] font-black tracking-wider flex items-center justify-center">SHs</div>
-              <span className="text-lg font-extrabold tracking-tight text-foreground hidden sm:block">SmartHomeserV</span>
+              <span className="text-lg font-extrabold tracking-tight text-foreground hidden sm:block">Urban Square</span>
             </button>
             <button
               onClick={detectLocation}
@@ -164,17 +168,17 @@ const Index = () => {
                 <ChevronRight className={`h-3 w-3 text-muted-foreground transition-transform ${langOpen ? "rotate-[270deg]" : "rotate-90"}`} />
               </button>
               {langOpen &&
-              <div className="absolute right-0 top-full mt-1.5 w-36 bg-card border rounded-xl sh-shadow-lg overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-1.5 w-36 bg-card border rounded-xl sh-shadow-lg overflow-hidden z-50">
                   {languages.map((lang) =>
-                <button
-                  key={lang.code}
-                  onClick={() => {setLanguage(lang.code);setLangOpen(false);}}
-                  className={`w-full text-left px-3.5 py-2 text-sm hover:bg-muted transition-colors flex items-center justify-between ${language === lang.code ? "font-bold text-primary" : "text-foreground"}`}>
+                    <button
+                      key={lang.code}
+                      onClick={() => { setLanguage(lang.code); setLangOpen(false); }}
+                      className={`w-full text-left px-3.5 py-2 text-sm hover:bg-muted transition-colors flex items-center justify-between ${language === lang.code ? "font-bold text-primary" : "text-foreground"}`}>
 
                       <span>{lang.label}</span>
                       <span className="text-[10px] text-muted-foreground">{lang.code}</span>
                     </button>
-                )}
+                  )}
                 </div>
               }
             </div>
@@ -189,7 +193,7 @@ const Index = () => {
 
               <ShoppingCart className="h-4 w-4 text-foreground" />
               {totalItems > 0 &&
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
                   {totalItems}
                 </span>
               }
@@ -208,7 +212,7 @@ const Index = () => {
 
             <ThemeToggle variant="white" />
             {session ?
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Button className="rounded-full text-sm font-bold sh-gradient-blue border-0 text-white px-5" onClick={() => navigate("/dashboard")}>
                   Dashboard
                 </Button>
@@ -221,7 +225,7 @@ const Index = () => {
                 </button>
               </div> :
 
-            <>
+              <>
                 <Button variant="ghost" className="text-sm font-semibold rounded-full hidden sm:flex" onClick={() => navigate("/auth")}>
                   Sign In
                 </Button>
@@ -275,9 +279,9 @@ const Index = () => {
                   className="h-14 pl-12 pr-12 rounded-2xl border-2 border-border bg-card text-base sh-shadow-md focus-visible:ring-primary focus-visible:border-primary" />
 
                 {searchQuery &&
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10">
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10">
 
                     <X className="h-4 w-4" />
                   </button>
@@ -286,20 +290,20 @@ const Index = () => {
                 {/* Live search dropdown */}
                 <AnimatePresence>
                   {searchQuery.trim() && searchFocused &&
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="absolute top-full mt-2 left-0 right-0 bg-card border rounded-2xl sh-shadow-lg overflow-hidden z-50">
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute top-full mt-2 left-0 right-0 bg-card border rounded-2xl sh-shadow-lg overflow-hidden z-50">
 
                       {filteredServices.length > 0 ?
-                    filteredServices.map((svc) => {
-                      const IconComp = iconMap[svc.icon || ""] || Sparkles;
-                      return (
-                        <button
-                          key={svc.id}
-                          onMouseDown={() => handleServiceClick(svc.id)}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left">
+                        filteredServices.map((svc) => {
+                          const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                          return (
+                            <button
+                              key={svc.id}
+                              onMouseDown={() => handleServiceClick(svc.id)}
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left">
 
                               <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${colorMap[svc.icon || ""] || "bg-muted text-foreground"}`}>
                                 <IconComp className="h-5 w-5" />
@@ -311,12 +315,12 @@ const Index = () => {
                               <ArrowRight className="h-4 w-4 text-muted-foreground" />
                             </button>);
 
-                    }) :
+                        }) :
 
-                    <div className="px-4 py-6 text-center">
+                        <div className="px-4 py-6 text-center">
                           <p className="text-sm text-muted-foreground">No services matching "<span className="font-semibold text-foreground">{searchQuery}</span>"</p>
                         </div>
-                    }
+                      }
                     </motion.div>
                   }
                 </AnimatePresence>
@@ -330,18 +334,18 @@ const Index = () => {
                 className="flex items-center gap-8 mt-10">
 
                 {[
-                { icon: Star, value: "4.8", label: "Service Rating" },
-                { icon: Users, value: "12M+", label: "Happy Customers" },
-                { icon: Clock, value: "~15 min", label: "Avg. Response" }].
-                map((stat) =>
-                <div key={stat.label} className="flex items-center gap-2.5">
-                    <stat.icon className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-lg font-black text-foreground leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
+                  { icon: Star, value: "4.8", label: "Service Rating" },
+                  { icon: Users, value: "12M+", label: "Happy Customers" },
+                  { icon: Clock, value: "~15 min", label: "Avg. Response" }].
+                  map((stat) =>
+                    <div key={stat.label} className="flex items-center gap-2.5">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-lg font-black text-foreground leading-none">{stat.value}</p>
+                        <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </motion.div>
             </div>
 
@@ -375,7 +379,7 @@ const Index = () => {
 
       {/* Services Belt — infinite scrolling marquee */}
       {services.length > 0 &&
-      <section className="py-14 md:py-20 overflow-hidden">
+        <section className="py-14 md:py-20 overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-8">
             <div className="flex items-end justify-between">
               <div>
@@ -383,8 +387,8 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mt-1">Professional help for every need</p>
               </div>
               <button
-              onClick={() => handleServiceClick()}
-              className="text-sm font-bold text-primary flex items-center gap-1 hover:underline">
+                onClick={() => handleServiceClick()}
+                className="text-sm font-bold text-primary flex items-center gap-1 hover:underline">
 
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </button>
@@ -396,25 +400,25 @@ const Index = () => {
             <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
             <div className="flex animate-marquee group-hover:[animation-play-state:paused] w-max gap-4 py-2">
               {[...services, ...services, ...services].map((svc, i) => {
-              const IconComp = iconMap[svc.icon || ""] || Sparkles;
-              return (
-                <motion.button
-                  key={`${svc.id}-${i}`}
-                  whileHover={{ y: -6, scale: 1.05 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow cursor-pointer min-w-[120px]"
-                  onClick={() => handleServiceClick(svc.id)}>
+                const IconComp = iconMap[svc.icon || ""] || Sparkles;
+                return (
+                  <motion.button
+                    key={`${svc.id}-${i}`}
+                    whileHover={{ y: -6, scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-shadow cursor-pointer min-w-[120px]"
+                    onClick={() => handleServiceClick(svc.id)}>
 
                     <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[svc.icon || ""] || "bg-muted text-foreground"} transition-transform`}>
                       <IconComp className="h-6 w-6" />
                     </div>
                     <span className="text-xs font-bold text-foreground text-center leading-tight whitespace-nowrap">{svc.name}</span>
                     {svc.price_range &&
-                  <span className="text-[10px] text-muted-foreground font-medium">{svc.price_range}</span>
-                  }
+                      <span className="text-[10px] text-muted-foreground font-medium">{svc.price_range}</span>
+                    }
                   </motion.button>);
 
-            })}
+              })}
             </div>
           </div>
         </section>
@@ -429,29 +433,38 @@ const Index = () => {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-            { step: "1", icon: Search, title: "Choose a Service", desc: "Pick what you need and share your GPS location." },
-            { step: "2", icon: Zap, title: "AI Auto-Match", desc: "We instantly assign the nearest, top-rated helper." },
-            { step: "3", icon: CheckCircle2, title: "Track & Pay", desc: "Track live on map. Rate after completion." }].
-            map((item, i) =>
-            <motion.div
-              key={item.step}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.12 }}
-              className="relative p-8 rounded-3xl bg-card border sh-shadow text-center">
+              { step: "1", icon: Search, title: "Choose a Service", desc: "Pick what you need and share your GPS location." },
+              { step: "2", icon: Zap, title: "AI Auto-Match", desc: "We instantly assign the nearest, top-rated helper." },
+              { step: "3", icon: CheckCircle2, title: "Track & Pay", desc: "Track live on map. Rate after completion." }].
+              map((item, i) =>
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12 }}
+                  className="relative p-8 rounded-3xl bg-card border sh-shadow text-center">
 
-                <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-                  <item.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-base font-bold text-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                <span className="absolute top-5 right-6 text-4xl font-black text-muted-foreground/10">{item.step}</span>
-              </motion.div>
-            )}
+                  <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                    <item.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-base font-bold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <span className="absolute top-5 right-6 text-4xl font-black text-muted-foreground/10">{item.step}</span>
+                </motion.div>
+              )}
           </div>
         </div>
       </section>
+
+      {/* SOS Emergency Section */}
+      <SOSEmergency />
+
+      {/* Offer Zone Section */}
+      <OfferZone />
+
+      {/* Bank Offers Section */}
+      <BankOffers />
 
       {/* Reviews */}
       <section className="py-14 md:py-20">
@@ -462,18 +475,18 @@ const Index = () => {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {reviews.map((review, i) =>
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="p-5 rounded-2xl bg-card border sh-shadow">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="p-5 rounded-2xl bg-card border sh-shadow">
 
                 <div className="flex items-center gap-0.5 mb-3">
                   {Array.from({ length: review.rating }).map((_, j) =>
-                <Star key={j} className="h-3.5 w-3.5 fill-[hsl(var(--sh-orange))] text-[hsl(var(--sh-orange))]" />
-                )}
+                    <Star key={j} className="h-3.5 w-3.5 fill-[hsl(var(--sh-orange))] text-[hsl(var(--sh-orange))]" />
+                  )}
                 </div>
                 <p className="text-sm text-foreground leading-relaxed mb-3">"{review.text}"</p>
                 <div className="flex items-center justify-between">
@@ -491,27 +504,27 @@ const Index = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid md:grid-cols-3 gap-8">
             {[
-            { icon: Shield, title: "Verified Pros", desc: "Every helper is background-checked and skill-verified." },
-            { icon: Star, title: "Rated & Reviewed", desc: "Transparent ratings so you always know who's coming." },
-            { icon: Headphones, title: "24/7 Support", desc: "Round-the-clock help for any issue during service." }].
-            map((item, i) =>
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="flex items-start gap-4">
+              { icon: Shield, title: "Verified Pros", desc: "Every helper is background-checked and skill-verified." },
+              { icon: Star, title: "Rated & Reviewed", desc: "Transparent ratings so you always know who's coming." },
+              { icon: Headphones, title: "24/7 Support", desc: "Round-the-clock help for any issue during service." }].
+              map((item, i) =>
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-4">
 
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
-                </div>
-              </motion.div>
-            )}
+                  <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </motion.div>
+              )}
           </div>
         </div>
       </section>
@@ -544,9 +557,9 @@ const Index = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg sh-gradient-blue text-white text-[10px] font-black">SH</div>
-            <span className="text-sm font-bold text-foreground">SmartHelper</span>
+            <span className="text-sm font-bold text-foreground">Urban Square</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2026 SmartHelper. Built for SIH.</p>
+          <p className="text-xs text-muted-foreground">© 2026 Urban Square. Built for SIH.</p>
         </div>
       </footer>
 

@@ -48,7 +48,7 @@ export function AppHeader({ title, showBack = false, backTo, rightContent, varia
                 "text-base font-bold tracking-tight hidden sm:block",
                 variant === "primary" ? "text-white" : "text-foreground"
               )}>
-                SmartHelper
+                Urban Square
               </span>
             </button>
           )}

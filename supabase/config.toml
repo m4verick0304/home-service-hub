@@ -2,3 +2,6 @@ project_id = "iqzrhpldkpemfwkcwwmg"
 
 [functions.twilio-otp]
 verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false

@@ -18,6 +18,8 @@ const HelperJobRequest = () => {
   const [loading, setLoading] = useState(true);
   const [helperLat, setHelperLat] = useState(28.4595 + 0.012);
   const [helperLng, setHelperLng] = useState(77.0266 - 0.015);
+  const [clientLat, setClientLat] = useState<number | undefined>();
+  const [clientLng, setClientLng] = useState<number | undefined>();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -26,7 +28,7 @@ const HelperJobRequest = () => {
           setHelperLat(pos.coords.latitude + 0.005);
           setHelperLng(pos.coords.longitude - 0.008);
         },
-        () => {},
+        () => { },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     }
@@ -73,9 +75,15 @@ const HelperJobRequest = () => {
 
   useEffect(() => {
     if (!selectedBooking && pendingBookings.length > 0) {
-      setSelectedBooking(pendingBookings[0]);
+      const booking = pendingBookings[0];
+      setSelectedBooking(booking);
+      setClientLat(booking.latitude || undefined);
+      setClientLng(booking.longitude || undefined);
       setCountdown(30);
       setExpired(false);
+    } else if (selectedBooking) {
+      setClientLat(selectedBooking.latitude || undefined);
+      setClientLng(selectedBooking.longitude || undefined);
     }
   }, [pendingBookings, selectedBooking]);
 
@@ -241,6 +249,8 @@ const HelperJobRequest = () => {
               userLabel="Client"
               helperLat={helperLat}
               helperLng={helperLng}
+              userLat={clientLat}
+              userLng={clientLng}
             />
 
             <div className="flex items-center gap-2 mt-3 p-2.5 rounded-lg bg-muted/70">

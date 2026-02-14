@@ -29,7 +29,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; title: string; subti
   completed: {
     icon: <CheckCircle2 className="h-8 w-8 text-primary" />,
     title: "Service Completed",
-    subtitle: "Thank you for using SmartHelper",
+    subtitle: "Thank you for using Urban Square",
   },
   cancelled: {
     icon: <AlertCircle className="h-8 w-8 text-destructive" />,
@@ -55,7 +55,7 @@ const BookingConfirmation = () => {
           setUserLat(pos.coords.latitude);
           setUserLng(pos.coords.longitude);
         },
-        () => {},
+        () => { },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     }

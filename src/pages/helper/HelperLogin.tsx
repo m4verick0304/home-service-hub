@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -225,9 +224,7 @@ const HelperLogin = () => {
               className="w-full h-12 rounded-xl text-sm font-medium"
               onClick={async () => {
                 localStorage.setItem("auth_redirect", "/helper/dashboard");
-                const { error } = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: window.location.origin,
-                });
+                const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
                 if (error) toast({ title: "Google sign in failed", description: String(error), variant: "destructive" });
               }}
             >
@@ -241,9 +238,7 @@ const HelperLogin = () => {
               className="w-full h-12 rounded-xl text-sm font-medium"
               onClick={async () => {
                 localStorage.setItem("auth_redirect", "/helper/dashboard");
-                const { error } = await lovable.auth.signInWithOAuth("apple", {
-                  redirect_uri: window.location.origin,
-                });
+                const { error } = await supabase.auth.signInWithOAuth({ provider: "apple", options: { redirectTo: window.location.origin } });
                 if (error) toast({ title: "Apple sign in failed", description: String(error), variant: "destructive" });
               }}
             >

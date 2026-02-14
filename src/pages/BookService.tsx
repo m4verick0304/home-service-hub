@@ -131,13 +131,20 @@ const BookService = () => {
     setSearching(true);
 
     // Create booking with "pending" status — waits for helper to accept
-    const { data, error } = await supabase.from("bookings").insert({
+    const bookingPayload: any = {
       user_id: profile.id,
       service_id: service.id,
       address,
       status: "pending",
       scheduled_at: scheduling === "later" && scheduledDate ? new Date(scheduledDate).toISOString() : new Date().toISOString(),
-    }).select().single();
+    };
+
+    if (userCoords) {
+      bookingPayload.latitude = userCoords.lat;
+      bookingPayload.longitude = userCoords.lng;
+    }
+
+    const { data, error } = await supabase.from("bookings").insert(bookingPayload).select().single();
 
     if (error) {
       setSearching(false);
@@ -257,11 +264,10 @@ const BookService = () => {
             {(["now", "later"] as const).map(opt => (
               <button
                 key={opt}
-                className={`h-12 rounded-xl font-semibold text-sm border-2 transition-all flex items-center justify-center gap-2 ${
-                  scheduling === opt
+                className={`h-12 rounded-xl font-semibold text-sm border-2 transition-all flex items-center justify-center gap-2 ${scheduling === opt
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border text-foreground hover:border-primary/30"
-                }`}
+                  }`}
                 onClick={() => setScheduling(opt)}
               >
                 {scheduling === opt && <Check className="h-4 w-4" />}
