@@ -16,6 +16,9 @@ import {
   Shield, Star, ArrowRight, Snowflake, Bug, Scissors,
   Settings, SprayCan, Droplets, User, GlassWater, Truck, Camera
 } from "lucide-react";
+import { SOSEmergency } from "@/components/dashboard/SOSEmergency";
+import { OfferZone } from "@/components/dashboard/OfferZone";
+import { BankOffers } from "@/components/dashboard/BankOffers";
 
 type Service = Tables<"services">;
 
@@ -201,6 +204,15 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* SOS Emergency */}
+      <SOSEmergency />
+
+      {/* Offer Zone */}
+      <OfferZone />
+
+      {/* Bank Offers */}
+      <BankOffers />
 
       {/* Services Grid */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pb-10">
