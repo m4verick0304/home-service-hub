@@ -8,6 +8,9 @@ import { Tables } from "@/integrations/supabase/types";
 import { AppHeader } from "@/components/shared/AppHeader";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SOSEmergency } from "@/components/dashboard/SOSEmergency";
+import { OfferZone } from "@/components/dashboard/OfferZone";
+import { BankOffers } from "@/components/dashboard/BankOffers";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -201,6 +204,15 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* SOS Emergency */}
+      <SOSEmergency />
+
+      {/* Offer Zone */}
+      <OfferZone />
+
+      {/* Bank Offers */}
+      <BankOffers />
 
       {/* Services Grid */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pb-10">
