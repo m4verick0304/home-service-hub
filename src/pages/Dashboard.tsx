@@ -19,27 +19,34 @@ import {
   Shield, Star, ArrowRight, Snowflake, Bug, Scissors,
   Settings, SprayCan, Droplets, User, GlassWater, Truck, Camera
 } from "lucide-react";
+import LightRays from "./../components/LightRays";
 
 type Service = Tables<"services">;
 
 const iconMap: Record<string, React.ReactNode> = {
-  Sparkles: <Sparkles className="h-6 w-6" />,
-  Wrench: <Wrench className="h-6 w-6" />,
-  Zap: <Zap className="h-6 w-6" />,
-  ChefHat: <ChefHat className="h-6 w-6" />,
-  Paintbrush: <Paintbrush className="h-6 w-6" />,
-  Hammer: <Hammer className="h-6 w-6" />,
-  Snowflake: <Snowflake className="h-6 w-6" />,
-  Bug: <Bug className="h-6 w-6" />,
-  Scissors: <Scissors className="h-6 w-6" />,
-  Settings: <Settings className="h-6 w-6" />,
-  SprayCan: <SprayCan className="h-6 w-6" />,
-  Droplets: <Droplets className="h-6 w-6" />,
-  User: <User className="h-6 w-6" />,
-  GlassWater: <GlassWater className="h-6 w-6" />,
-  Truck: <Truck className="h-6 w-6" />,
-  Camera: <Camera className="h-6 w-6" />,
+  Sparkles: <Sparkles className="h-10 w-10" />,
+  Wrench: <Wrench className="h-10 w-10" />,
+  Zap: <Zap className="h-10 w-10" />,
+  ChefHat: <ChefHat className="h-10 w-10" />,
+  Paintbrush: <Paintbrush className="h-10 w-10" />,
+  Hammer: <Hammer className="h-10 w-10" />,
+  Snowflake: <Snowflake className="h-10 w-10" />,
+  Bug: <Bug className="h-10 w-10" />,
+  Scissors: <Scissors className="h-10 w-10" />,
+  Settings: <Settings className="h-10 w-10" />,
+  SprayCan: <SprayCan className="h-10 w-10" />,
+  Droplets: <Droplets className="h-10 w-10" />,
+  User: <User className="h-10 w-10" />,
+  GlassWater: <GlassWater className="h-10 w-10" />,
+  Truck: <Truck className="h-10 w-10" />,
+  Camera: <Camera className="h-10 w-10" />,
 };
+
+// ... (keep colorMap same, effectively skipping it in replacement for brevity if tools allow, but here I must match block)
+// Actually, I'll just target the iconMap and then the render part separately to be safe and avoid large blocks.
+
+// RETRY: I will splitting this into two ReplaceFileContent calls or use MultiReplace.
+// MultiReplace is better.
 
 const colorMap: Record<string, string> = {
   Sparkles: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
@@ -60,7 +67,7 @@ const colorMap: Record<string, string> = {
   Camera: "bg-[hsl(var(--sh-green-light))] text-[hsl(var(--sh-green))]",
 };
 
-const Dashboard = () => {
+export default function DashboardPage() {
   const { profile } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -105,7 +112,8 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+      <LightRays className="background-rays" />
       <AppHeader
         rightContent={
           <div className="flex items-center gap-1">
@@ -243,14 +251,14 @@ const Dashboard = () => {
                   className="w-full group cursor-pointer text-left"
                   onClick={() => navigate(`/book/${service.id}`)}
                 >
-                  <div className="p-5 rounded-2xl bg-card border sh-shadow hover:sh-shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col items-center gap-3">
-                    <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${colorMap[service.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
-                      {iconMap[service.icon || ""] || <Sparkles className="h-6 w-6" />}
+                  <div className="p-8 rounded-3xl bg-card border sh-shadow hover:sh-shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col items-center gap-5">
+                    <div className={`h-24 w-24 rounded-3xl flex items-center justify-center ${colorMap[service.icon || ""] || "bg-muted text-foreground"} group-hover:scale-110 transition-transform`}>
+                      {iconMap[service.icon || ""] || <Sparkles className="h-10 w-10" />}
                     </div>
                     <div className="text-center">
-                      <span className="text-sm font-bold text-foreground block">{service.name}</span>
+                      <span className="text-lg font-bold text-foreground block">{service.name}</span>
                       {service.price_range && (
-                        <span className="text-xs text-muted-foreground mt-0.5 block">{service.price_range}</span>
+                        <span className="text-sm text-muted-foreground mt-1 block">{service.price_range}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
@@ -308,6 +316,4 @@ const Dashboard = () => {
       </footer>
     </div>
   );
-};
-
-export default Dashboard;
+}

@@ -135,9 +135,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ minHeight: '100vh', overflow: 'hidden' }}>
+      {/* LightRays effect removed. Main content only. */}
       {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
+      <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 h-16">
           <div className="flex items-center gap-4 sm:gap-6">
             <button onClick={() => navigate("/")} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
@@ -240,7 +241,7 @@ const Index = () => {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
+        {/* Removed opaque gradient to allow Silk background to show */}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-20">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             {/* Left */}
@@ -425,7 +426,7 @@ const Index = () => {
       }
 
       {/* How it works */}
-      <section className="py-14 md:py-20 bg-muted/40">
+      <section className="py-14 md:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">How it works</h2>
@@ -500,7 +501,7 @@ const Index = () => {
       </section>
 
       {/* Trust */}
-      <section className="py-14 md:py-20 bg-muted/40">
+      <section className="py-14 md:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -565,8 +566,8 @@ const Index = () => {
 
       {/* Chatbot */}
       <ChatbotWidget />
-    </div>);
-
+    </div>
+  );
 };
 
 export default Index;

@@ -1,0 +1,11 @@
+/* ...existing code... */
+.light-rays-container.background-rays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+/* ...existing code... */
